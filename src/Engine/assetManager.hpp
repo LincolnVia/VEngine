@@ -9,18 +9,7 @@ namespace engine {
 
 class AssetManager {
 public:
-  void Init() {
-
-    LoadModelToStorage("worldMesh", "resources/scenes/level_01.obj");
-    LoadTextureToStorage("ground", "resources/textures/grass.png");
-    LoadTextureToStorage("wall", "resources/textures/Dark/texture_01.png");
-
-    LoadTextureToStorage("bounceGel", "resources/textures/bounce.png");
-
-    LoadTextureToStorage("speedGel", "resources/textures/speed.png");
-
-    LoadModelToStorage("companionCube", "resources/models/scene.gltf");
-  }
+  void Init() {}
   ~AssetManager() {
     for (auto &m : models) {
       UnloadModel(m.second);

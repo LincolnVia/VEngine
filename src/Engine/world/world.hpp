@@ -1,26 +1,12 @@
 #pragma once
 
+#include "box3d/id.h"
+#include "engine/engine.hpp"
+#include "engine/world/entityRegistry.hpp"
+#include "engine/world/entity.hpp"
 #include <engine/physics/physics.hpp>
-
-#include "entities.hpp"
-#include "game/systems/zombieManager.hpp"
-#include <box3d/box3d.h>
-#include <engine/eventListener.hpp>
-#include <engine/world/cubeBrush.hpp>
-#include <engine/world/entityRegistry.hpp>
 #include <engine/world/quakeBsp.hpp>
-#include <memory>
-#include <raylib.h>
-#include <vector>
-
 namespace engine {
-class Engine;
-}
-
-namespace game {
-using engine::Engine;
-using engine::EventListener;
-
 class World {
 public:
   explicit World(Engine &engine);
@@ -53,12 +39,9 @@ private:
   void SpawnTrigger(const Entity &entity);
   void SpawnDynamicProp(const Entity &entity);
   void SpawnWallbuy(const Entity &entity);
-
   Engine &engine; // why is this here it should not by im not touching it
   EventListener eventListener;
-  ZombieManager zombieManager;
   EntityRegistry entitySpawners;
-  std::vector<cubeBrush> meshs;
 
   Model skyBox;
 
@@ -74,4 +57,4 @@ private:
   int subStepCount = 8;
 };
 
-} // namespace game
+} // namespace engine

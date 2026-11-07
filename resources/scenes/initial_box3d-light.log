@@ -10,8 +10,8 @@ ConvertTextures: WARNING: invalid size data for metal_bare_2
 ConvertTextures: WARNING: invalid size data for texture_08
 Loading extended texinfo flags from initial_box3d.texinfo.json...
 Loading extended content flags from initial_box3d.content.json...
-WARNING: entity at (56 -136 16) (info_zombie_spawn) has empty key/value "property 1" ""
-8 entities read, 1 are lights.
+WARNING: entity at (264 104 48) (info_hound_spawn) has empty key/value "model" ""
+6 entities read, 1 are lights.
 
 --- Options Summary ---
 
@@ -33,7 +33,7 @@ Lighting Completed.
 
 0 switchable light styles (32 max)
 Writing initial_box3d.bsp as Quake BSP bsp29
-0.012s seconds elapsed
+0.011s seconds elapsed
 0 empty lightmaps
 
 

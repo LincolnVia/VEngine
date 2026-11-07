@@ -35,6 +35,16 @@
 
 @PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/heavy_zombie.glb", "scale": "60"}) angle(-1) = info_zombie_spawn : "Enemy spawner"
 [ 
+    model(string) : "ModelPath" : ""
+    angle(integer) : "Direction" : -1
+    spawnrate(integer) : "Spawn Rate" : 0
+    limit(integer) : "Max Spawns" : 1 
+    enabled(integer) : "Enabled" : 1
+]
+
+@PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/hellhound/hellhound.glb", "scale": "2.3"}) angle(0) = info_hound_spawn : "Hound spawner"
+[ 
+    model(string) : "ModelPath" : "resources/models/hellhound/hellhound.glb"
     angle(integer) : "Direction" : -1
     spawnrate(integer) : "Spawn Rate" : 0
     limit(integer) : "Max Spawns" : 1 

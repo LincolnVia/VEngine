@@ -3,13 +3,13 @@
 
 #include "quakeBsp.hpp"
 
-#include <engine/physics/physics.hpp>
 #include "entityRegistry.hpp"
 #include "external/tinyobj_loader_c.h"
 #include "quakePalette.hpp"
 #include "raylib.h"
 #include <box3d/collision.h>
 #include <box3d/types.h>
+#include <engine/physics/physics.hpp>
 #include <raymath.h>
 
 #include <algorithm>
@@ -25,7 +25,7 @@
 #include <string_view>
 #include <unordered_map>
 
-namespace game {
+namespace engine {
 
 constexpr float kQuakeToWorldScale = 0.05f;
 
@@ -591,4 +591,4 @@ void QuakeBspLevel::Draw(Shader shader) {
   }
 }
 
-} // namespace game
+} // namespace engine

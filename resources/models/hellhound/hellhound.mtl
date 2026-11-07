@@ -1,0 +1,52 @@
+# Blender 5.2.3 LTS MTL File: 'Hellhoundd.blend'
+# www.blender.org
+
+newmtl mtl_c_zom_der_zombie_hound_body.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd i_c_zom_der_zombie_hound_body_c.tga
+
+newmtl mtl_c_zom_der_zombie_hound_eye_glow.001
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl mtl_c_zom_der_zombie_hound_head.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.078740 0.078740 0.078740
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd i_c_zom_der_zombie_hound_head_c.tga
+
+newmtl mtl_c_zom_der_zombie_hound_teeth.001
+Ns 250.000000
+Ka 0.220472 0.220472 0.220472
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Kd i_c_zom_der_zombie_hound_teeth_c.tga
+
+newmtl mtl_wolf_a_hair_a_body.002
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.122700 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

@@ -22,3 +22,7 @@ struct info_zombie_spawn {
 
 Take all info_zombie_spawn form bsp parse to struct 
 add to vector and update
+
+
+AIController gets passed in a forward declaration Player that way each game can use a cutom player
+I will be using a engine template 3rdPersonCharacter

@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-namespace game {
+namespace engine {
 inline Vector3 ConvertStringToVector3(const std::string &position_string) {
   std::stringstream ss(position_string);
   Vector3 vec;
@@ -36,4 +36,4 @@ inline const Vector3 halfFromQuake(BspModel &bspModel) {
   return halfExtents;
 }
 
-} // namespace game
+} // namespace engine

@@ -86,7 +86,7 @@ target_link_libraries(rlImGui PUBLIC raylib)
 
 add_library(Box3dEngine STATIC)
 add_executable(Box3dGame)
-add_executable(Box3dEditor)
+
 add_custom_target(${PROJECT_NAME} DEPENDS Box3dGame)
 add_subdirectory(src)
 
@@ -94,13 +94,10 @@ option(BOX3D_STATIC_GCC_RUNTIME "Statically link the GCC runtime into Windows ex
 
 if(MINGW AND BOX3D_STATIC_GCC_RUNTIME)
     target_link_options(Box3dGame PRIVATE -static -static-libgcc -static-libstdc++)
-    target_link_options(Box3dEditor PRIVATE -static -static-libgcc -static-libstdc++)
-endif()
+    endif()
 
 target_link_libraries(Box3dEngine PUBLIC raylib box3d::box3d)
 target_link_libraries(Box3dGame PRIVATE Box3dEngine)
-target_link_libraries(Box3dEditor PRIVATE Box3dEngine imgui rlImGui)
-
 add_custom_target(Box3dResources
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/resources
@@ -108,4 +105,4 @@ add_custom_target(Box3dResources
     COMMENT "Copying runtime resources"
 )
 add_dependencies(Box3dGame Box3dResources)
-add_dependencies(Box3dEditor Box3dResources)
+

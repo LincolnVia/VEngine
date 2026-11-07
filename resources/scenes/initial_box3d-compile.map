@@ -87,28 +87,16 @@
 // entity 4
 {
 "classname" "prop_dynamic"
-"origin" "-80 130 28"
+"origin" "-48 50 28"
 "model" "companion_cube.glb"
 "scale" "1"
 }
 // entity 5
 {
-"classname" "prop_dynamic"
-"origin" "880 -64 56"
-"model" "portalgun.gltf"
-"scale" ".03"
-}
-// entity 6
-{
-"classname" "info_zombie_spawn"
-"origin" "120 40 16"
-"angles" "-90 0 0"
-}
-// entity 7
-{
-"classname" "info_zombie_spawn"
-"origin" "56 -136 16"
-"angle" "-1"
-"property 1" ""
+"classname" "info_hound_spawn"
+"model" ""
+"spawnrate" "0"
+"limit" "1"
 "enabled" "1"
+"origin" "264 104 48"
 }

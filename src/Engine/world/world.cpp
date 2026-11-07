@@ -1,25 +1,27 @@
-#include "world.hpp"
 #include <engine/engine.hpp>
 #include <engine/graphics/graphics.hpp>
 #include <engine/world/cubeBrush.hpp>
+#include <engine/world/world.hpp>
+#include <engine/world/quakeUtil.hpp>
 
 #include "engine/entities.hpp"
-#include "entities.hpp"
+#include "game/world/entities.hpp"
+
 #include "raymath.h"
 #include <algorithm>
 #include <box3d/box3d.h>
 #include <box3d/math_functions.h>
 #include <box3d/types.h>
 #include <cctype>
-#include <engine/world/quakeUtil.hpp>
-#include <game/utils.hpp>
+
 #include <raylib.h>
+#define RLIGHTS_IMPLEMENTATION
 #include <rlights.h>
 #include <string>
 #include <utility>
 #include <vector>
 
-namespace game {
+namespace engine {
 
 enum Materials {
 
@@ -46,7 +48,7 @@ void World::Init() {
       b3WorldTransform{b3ToPos({0.0f, -2.0f, 50.0f}), b3Quat_identity},
       b3Vec3{100.0f, 1.0f, 100.0f}, WHITE};
 
-  meshs.push_back(brush);
+  (void)brush;
 }
 
 void World::Shutdown() {
@@ -92,8 +94,7 @@ void World::Update() {
                        return static_cast<char>(std::tolower(character));
                      });
       if (extension == ".bsp") {
-        engine.LoadBspLevel(path);
-        zombieManager.ReadLevelData(quakeLevel);
+        LoadBspLevel(path);
       } else if (extension != ".bsp") {
         TraceLog(LOG_WARNING, "Dropped file is not a .bsp: %s",
                  path.string().c_str());
@@ -106,7 +107,6 @@ void World::Update() {
   for (const auto &entity : runtimeEntities) {
     entity->Update();
   }
-  zombieManager.UpdateSpawners();
 }
 
 void World::Interact(b3BodyId bodyId) {
@@ -116,9 +116,10 @@ void World::Interact(b3BodyId bodyId) {
             dynamic_cast<const info_trigger *>(entity.get())) {
       object = &trigger->entityData;
     } else if (const auto *prop =
-                   dynamic_cast<const prop_dynamic *>(entity.get())) {
+            dynamic_cast<const game::prop_dynamic *>(entity.get())) {
       object = &prop->boxdef;
-    } else if (const auto *buy = dynamic_cast<const wallbuy *>(entity.get())) {
+    } else if (const auto *buy =
+                   dynamic_cast<const game::wallbuy *>(entity.get())) {
       object = &buy->boxdef;
     }
     if (object != nullptr && B3_ID_EQUALS(object->bodyId, bodyId)) {
@@ -149,10 +150,12 @@ void World::DrawGameObjects() {
   for (const auto &entity : runtimeEntities) {
     const EnitityData *object = nullptr;
     float scale = 1.0f;
-    if (const auto *prop = dynamic_cast<const prop_dynamic *>(entity.get())) {
+    if (const auto *prop =
+            dynamic_cast<const game::prop_dynamic *>(entity.get())) {
       object = &prop->boxdef;
       scale = prop->modelScale;
-    } else if (const auto *buy = dynamic_cast<const wallbuy *>(entity.get())) {
+    } else if (const auto *buy =
+                   dynamic_cast<const game::wallbuy *>(entity.get())) {
       object = &buy->boxdef;
       scale = buy->modelScale;
     }
@@ -223,7 +226,7 @@ void World::SpawnDynamicProp(const Entity &entity) {
   if (!model) {
     return;
   }
-  runtimeEntities.push_back(std::make_unique<prop_dynamic>(
+  runtimeEntities.push_back(std::make_unique<game::prop_dynamic>(
       CreateModelObject(worldId, *model), model->transform.scale));
 }
 
@@ -234,7 +237,7 @@ void World::SpawnWallbuy(const Entity &entity) {
     return;
   }
 
-  auto buy = std::make_unique<wallbuy>(CreateModelObject(worldId, *model),
+  auto buy = std::make_unique<game::wallbuy>(CreateModelObject(worldId, *model),
                                        model->transform.scale);
   buy->cost = view.Int("cost", 0);
   buy->purchased = view.Int("purchased", 0);
@@ -273,4 +276,4 @@ void World::SpawnTrigger(const Entity &entity) {
   runtimeEntities.push_back(std::move(trigger));
 }
 
-} // namespace game
+} // namespace engine

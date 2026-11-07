@@ -17,7 +17,7 @@ public:
   virtual void Interact() {}
 };
 
-inline void DestroyRuntimeBody(game::EnitityData &object) {
+inline void DestroyRuntimeBody(EnitityData &object) {
   if (B3_IS_NON_NULL(object.bodyId)) {
     b3DestroyBody(object.bodyId);
     object.bodyId = b3_nullBodyId;

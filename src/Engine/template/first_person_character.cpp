@@ -1,9 +1,8 @@
-#include "player.hpp"
 #include "box3d/math_functions.h"
 #include "engine/physics/physics.hpp"
+#include "engine/utils.hpp"
 #include "engine/world/entityRegistry.hpp"
 #include "game/world/entities.hpp"
-#include "movement.hpp"
 #include <box3d/box3d.h>
 #include <box3d/id.h>
 #include <box3d/types.h>
@@ -11,14 +10,13 @@
 #include <cstring>
 #include <engine/global.hpp>
 #include <engine/graphics/graphics.hpp>
-#include <game/global.hpp>
-#include <game/utils.hpp>
+#include <engine/template/first_person_character.hpp>
 #include <raylib.h>
 
-namespace game {
+namespace engine {
 using engine::debugMode;
 
-void Player::CreatePhysicsBody() {
+void FirstPersonCharacter::CreatePhysicsBody() {
   b3BodyDef bodyDef = b3DefaultBodyDef();
   bodyDef.type = b3_dynamicBody;
   bodyDef.position = b3ToPos({0.0f, 2.0f, 0.0f});
@@ -46,7 +44,7 @@ void Player::CreatePhysicsBody() {
   globalPlayerShapeId = collider.shapeId;
 }
 
-void Player::Init(World &world, bool captureCursor) {
+void FirstPersonCharacter::Init(World &world, bool captureCursor) {
   _world = &world;
 
   CreatePhysicsBody();
@@ -73,9 +71,9 @@ void Player::Init(World &world, bool captureCursor) {
   gunCamera.fovy = 45.0f;
   gunCamera.projection = CAMERA_PERSPECTIVE;
 }
-Player::~Player() { UnloadModel(gunModel); }
+FirstPersonCharacter::~FirstPersonCharacter() { UnloadModel(gunModel); }
 
-void Player::Teleport(Vector3 position, float angle) {
+void FirstPersonCharacter::Teleport(Vector3 position, float angle) {
   b3Body_SetTransform(collider.bodyId,
                       b3ToPos({position.x, position.y, position.z}),
                       b3Quat_identity);
@@ -84,15 +82,15 @@ void Player::Teleport(Vector3 position, float angle) {
   yaw = angle * DEG2RAD;
 }
 
-void Player::Input() {
+void FirstPersonCharacter::Input() {
   HandleCameraLook();
   HandlePlayerMovement();
   HandleMouseInput();
   PickupPhysicsObject();
 }
 
-void Player::Update() {
-  Input();
+void FirstPersonCharacter::Update() {
+
   const b3Vec3 bodyPosition = b3ToVec3(b3Body_GetPosition(collider.bodyId));
   const b3Vec3 cameraPosition = b3Add(bodyPosition, {0.0f, 1.0f, 0.0f});
 
@@ -105,7 +103,7 @@ void Player::Update() {
   camera.target = B3Vec3ToVector3(b3Add(cameraPosition, view));
 }
 
-void Player::RenderGunTexture() {
+void FirstPersonCharacter::RenderGunTexture() {
   BeginTextureMode(gunTarget);
   ClearBackground({0, 0, 0, 0}); // transparent
   BeginMode3D(gunCamera);
@@ -114,18 +112,9 @@ void Player::RenderGunTexture() {
   EndTextureMode();
 }
 
-void Player::DrawGun(int width, int height) {
-  Rectangle src = {0.0f, 0.0f, (float)gunTarget.texture.width,
-                   -(float)gunTarget.texture.height};
-  Rectangle dst = {0.0f, 0.0f, (float)width, (float)height};
-  Vector2 origin = {0.0f, 0.0f};
+void FirstPersonCharacter::Draw() {}
 
-  DrawTexturePro(gunTarget.texture, src, dst, origin, 0.0f, WHITE);
-}
-
-void Player::Render() {}
-
-void Player::HandleCameraLook() {
+void FirstPersonCharacter::HandleCameraLook() {
   Vector2 mouseDelta = GetMouseDelta();
 
   yaw -= mouseDelta.x * sensitivity;
@@ -135,7 +124,7 @@ void Player::HandleCameraLook() {
   pitch = b3ClampFloat(pitch, -maxPitch, maxPitch);
 }
 
-void Player::HandlePlayerMovement() {
+void FirstPersonCharacter::HandlePlayerMovement() {
   float dt = GetFrameTime();
 
   const b3Vec3 bodyPos = b3ToVec3(b3Body_GetPosition(collider.bodyId));
@@ -207,7 +196,7 @@ void Player::HandlePlayerMovement() {
 }
 
 // Refactor for walls instead of companion cube
-void Player::HandleMouseInput() {
+void FirstPersonCharacter::HandleMouseInput() {
   RayFireResult ray =
       FireCameraRay(camera, *_world, 100.0f,
                     CollisionCategory::World | CollisionCategory::Trigger |
@@ -248,7 +237,7 @@ void Player::HandleMouseInput() {
   // void* userData = b3Shape_GetUserData(ray.hit.shapeId);
 }
 
-void Player::PickupPhysicsObject() {
+void FirstPersonCharacter::PickupPhysicsObject() {
   if (IsKeyPressed(KEY_E) && heldObject != nullptr) {
     // Dropping removes the constraint and helper body, then restores the
     // object's normal physics tuning. Velocity is kept, but capped so the
@@ -294,14 +283,15 @@ void Player::PickupPhysicsObject() {
       // bodyid
 
       for (const auto &entity : _world->getRuntimeEntities()) {
-        if (auto *dynamicBox = dynamic_cast<prop_dynamic *>(entity.get())) {
+        if (auto *dynamicBox =
+                dynamic_cast<game::prop_dynamic *>(entity.get())) {
 
           hitBox = &dynamicBox->boxdef;
         }
       }
 
       if (hitBox != nullptr) {
-        printf("Holding companion cube\n");
+        printf("Holding %s\n", hitBox->name.c_str());
         setHeldObject(hitBox);
 
         // Preserve the cube's normal physics settings. While held, gravity and
@@ -381,4 +371,4 @@ void Player::PickupPhysicsObject() {
   }
 }
 
-} // namespace game
+} // namespace engine

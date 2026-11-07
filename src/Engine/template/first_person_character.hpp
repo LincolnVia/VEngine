@@ -1,22 +1,22 @@
 #pragma once
 
-#include <box3d/box3d.h>
-#include <game/world/world.hpp>
-#include <raylib.h>
+#include "engine/physics/physics.hpp"
+#include "engine/world/world.hpp"
+namespace engine {
 
-namespace game {
-
-class Player {
+class FirstPersonCharacter {
 public:
-  Player() = default;
-  ~Player();
+  FirstPersonCharacter() = default;
+  ~FirstPersonCharacter();
 
   void Init(World &world, bool captureCursor = true);
   void CreatePhysicsBody();
 
   void Input();
   void Update();
-  void Render();
+  void Draw();
+  void RenderGunTexture();
+  void DrawGun(int width, int height);
 
   void HandlePlayerMovement();
   void HandleCameraLook();
@@ -25,8 +25,6 @@ public:
 
   void PickupPhysicsObject();
 
-  void RenderGunTexture();
-  void DrawGun(int width, int height);
   void Teleport(Vector3 position, float angle = 0);
 
   // Getter Setters for player variables
@@ -101,7 +99,7 @@ private:
 
   // Physics object pickup variables.
   float holdDistance = 5.0f;
-  float pickupDistance = 15.0f;
+  float pickupDistance = 1.0f;
   float pickupRadius = 3.75f;
   float holdCooldown = 0.5f;
   float cooldownTimer = 0.0f;
@@ -141,4 +139,4 @@ private:
   /// @}
 };
 
-} // namespace game
+} // namespace engine

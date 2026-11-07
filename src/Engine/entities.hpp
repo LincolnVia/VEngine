@@ -1,8 +1,20 @@
 #pragma once
 #include "box3d/id.h"
 #include "world/entity.hpp"
+namespace engine {
+
+struct prop_dynamic : engine::RuntimeEntity {
+  engine::EnitityData boxdef;
+  float modelScale = 1.0f;
+  int enabled = 1;
+
+  prop_dynamic(engine::EnitityData object, float scale)
+      : boxdef(std::move(object)), modelScale(scale) {}
+  ~prop_dynamic() override { engine::DestroyRuntimeBody(boxdef); }
+};
+
 struct info_trigger : public engine::RuntimeEntity {
-  game::EnitityData entityData;
+  EnitityData entityData;
   int target = -1;
   int triggered = 0;
   int enabled = 1;
@@ -10,7 +22,7 @@ struct info_trigger : public engine::RuntimeEntity {
     entityData = createStaticObject(
         {center.x, center.y, center.z},
         {halfExtents.x * 2.0f, halfExtents.y * 2.0f, halfExtents.z * 2.0f},
-        worldId, game::SurfaceMaterial::Default, true);
+        worldId, SurfaceMaterial::Default, true);
   }
   ~info_trigger() override { engine::DestroyRuntimeBody(entityData); }
   void on_trigger_collided() {
@@ -49,3 +61,5 @@ struct info_trigger : public engine::RuntimeEntity {
     }
   }
 };
+
+} // namespace engine

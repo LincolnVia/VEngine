@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace game {
+namespace engine {
 
 namespace CollisionCategory {
 constexpr uint64_t Static = 1ull << 0;
@@ -58,6 +58,36 @@ inline SurfaceMoveStats GetSurfaceMoveStats(SurfaceMaterial material) {
   default:
     return {};
   }
+}
+
+static void ApplyFriction(b3Vec3 &vel, float friction, float dt) {
+  const b3Vec3 horizontalVel = {vel.x, 0.0f, vel.z};
+  float speed = b3Length(horizontalVel);
+  if (speed < 0.001f)
+    return;
+
+  float drop = speed * friction * dt;
+  float newSpeed = speed - drop;
+  if (newSpeed < 0.0f)
+    newSpeed = 0.0f;
+
+  const float scale = newSpeed / speed;
+  vel.x *= scale;
+  vel.z *= scale;
+}
+
+static void Accelerate(b3Vec3 &vel, b3Vec3 wishDir, float wishSpeed,
+                       float accel, float dt) {
+  float currentSpeed = b3Dot(vel, wishDir);
+  float addSpeed = wishSpeed - currentSpeed;
+  if (addSpeed <= 0.0f)
+    return;
+
+  float accelSpeed = accel * dt * wishSpeed;
+  if (accelSpeed > addSpeed)
+    accelSpeed = addSpeed;
+
+  vel = b3MulAdd(vel, accelSpeed, wishDir);
 }
 
 /// Clamp a vector to a maximum length while keeping its direction.
@@ -260,4 +290,4 @@ createDynamicObject(b3Vec3 position, b3Vec3 scale, float density,
   return dynamicObject;
 };
 
-} // namespace game
+} // namespace engine

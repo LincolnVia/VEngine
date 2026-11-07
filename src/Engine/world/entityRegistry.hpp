@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/engine.hpp"
 #include "quakeBsp.hpp"
 #include <box3d/box3d.h>
 #include <filesystem>
@@ -10,11 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine { class Engine; }
-
-namespace game {
+namespace engine {
 using engine::Engine;
-
 
 class EntityView {
 public:
@@ -49,11 +47,11 @@ struct ModelEntity {
   b3Vec3 size{};
 };
 
-std::optional<EntityTransform>
-ParseEntityTransform(const EntityView &entity, std::string_view className);
+std::optional<EntityTransform> ParseEntityTransform(const EntityView &entity,
+                                                    std::string_view className);
 std::optional<ModelEntity> ParseModelEntity(Engine &engine,
-                                           const EntityView &entity,
-                                           std::string_view className);
+                                            const EntityView &entity,
+                                            std::string_view className);
 
 class EntityRegistry {
 public:
@@ -67,4 +65,4 @@ private:
   std::unordered_map<std::string, Handler> handlers;
 };
 
-} // namespace game
+} // namespace engine
