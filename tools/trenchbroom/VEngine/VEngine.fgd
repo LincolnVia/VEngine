@@ -32,7 +32,12 @@
     triggered(integer) : "Triggered" : 0
     enabled(integer) : "Enabled" : 1
 ]
-
+@SolidClass color(255 255 100) = info_interactable : "Interactable"
+[
+    target(integer) : "target" : -1
+    triggered(integer) : "Triggered" : 0
+    enabled(integer) : "Enabled" : 1
+]
 @PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/heavy_zombie.glb", "scale": "60"}) angle(-1) = info_zombie_spawn : "Enemy spawner"
 [ 
     model(string) : "ModelPath" : ""

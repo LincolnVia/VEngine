@@ -1,7 +1,10 @@
 #pragma once
 
+#include "engine/graphics/graphics.hpp"
 #include "engine/physics/physics.hpp"
+#include "engine/systems/interaction.hpp"
 #include "engine/world/world.hpp"
+#include "raylib.h"
 namespace engine {
 
 class FirstPersonCharacter {
@@ -15,15 +18,14 @@ public:
   void Input();
   void Update();
   void Draw();
-  void RenderGunTexture();
-  void DrawGun(int width, int height);
 
   void HandlePlayerMovement();
   void HandleCameraLook();
 
-  void HandleMouseInput();
-
   void PickupPhysicsObject();
+  void DisplayGrabPoint() {
+    DrawSphere(B3Vec3ToVector3(GetHoldPosition()), pickupRadius, RED);
+  }
 
   void Teleport(Vector3 position, float angle = 0);
 
@@ -44,7 +46,7 @@ public:
     };
 
     const b3Vec3 eye = b3Add(b3ToVec3(b3Body_GetPosition(collider.bodyId)),
-                             {0.0f, 1.3f, 0.0f});
+                             {0.0f, 1.0f, 0.0f});
 
     return b3Add(eye, b3MulSV(holdDistance, forward));
   }
@@ -60,6 +62,7 @@ private:
   Camera3D camera{};
   World *_world = nullptr;
   EnitityData collider;
+  InteractionSystem interactionSystem;
   Model gunModel;
   EnitityData *heldObject = nullptr;
   float heldObjectGravityScale = 1.0f;
@@ -88,7 +91,7 @@ private:
   float groundAccel = 15.0f;
   float airAccel = 3.0f;
   float groundFriction = 8.0f;
-  float jumpSpeed = 3.0f;
+  float jumpSpeed = 5.0f;
   float jumpRayDistance = 3.5;
 
   float maxExternalHorizontalSpeed = 12.0f;
@@ -99,8 +102,8 @@ private:
 
   // Physics object pickup variables.
   float holdDistance = 5.0f;
-  float pickupDistance = 1.0f;
-  float pickupRadius = 3.75f;
+  float pickupDistance = 4.0f;
+  float pickupRadius = 0.55f;
   float holdCooldown = 0.5f;
   float cooldownTimer = 0.0f;
   b3Vec3 holdOffset = {0.0f, 1.6f, 3.0f};

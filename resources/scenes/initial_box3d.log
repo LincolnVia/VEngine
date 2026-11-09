@@ -9,7 +9,7 @@ Output file: /Users/lincoln/projects/VEngine/resources/scenes/initial_box3d.bsp
 
 INFO: using built-in palette.
 WARNING: No wad or _wad key exists in the worldmodel
-     6 entities
+     7 entities
      6 unique textures
     30 texinfos
     68 unique planes
@@ -65,9 +65,9 @@ Leak file written to initial_box3d.pts
     819 edges
     381 faces
 Processing hull 1...
-WARNING: Reached occupant "info_player_start" at (-128 208 32), no filling performed.
+WARNING: Reached occupant "info_player_start" at (-128 208 40), no filling performed.
 Processing hull 2...
-WARNING: Reached occupant "info_player_start" at (-128 208 32), no filling performed.
+WARNING: Reached occupant "info_player_start" at (-128 208 40), no filling performed.
 Writing initial_box3d.bsp as Quake BSP bsp29
 Wrote initial_box3d.bsp
 
@@ -86,8 +86,8 @@ count   lump name    byte size
       6 textures            268
         lightdata             0
         visdata               0
-        entdata             418
+        entdata             512
 
-0.013s seconds elapsed
+0.025s seconds elapsed
 
 

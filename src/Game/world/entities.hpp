@@ -18,14 +18,4 @@ struct wallbuy : engine::RuntimeEntity {
   ~wallbuy() override { engine::DestroyRuntimeBody(boxdef); }
 };
 
-struct prop_dynamic : engine::RuntimeEntity {
-  engine::EnitityData boxdef;
-  float modelScale = 1.0f;
-  int enabled = 1;
-
-  prop_dynamic(engine::EnitityData object, float scale)
-      : boxdef(std::move(object)), modelScale(scale) {}
-  ~prop_dynamic() override { engine::DestroyRuntimeBody(boxdef); }
-};
-
 } // namespace game

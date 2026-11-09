@@ -88,7 +88,11 @@ inline RayFireResult FireCameraRay(const Camera3D &camera, const World &world,
 inline RayFireResult
 FireCameraSphereRay(const Camera3D &camera, const World &world, float distance,
                     float radius, uint64_t maskBits = B3_DEFAULT_MASK_BITS) {
-  const Ray screenRay = GetScreenToWorldRay(GetMousePosition(), camera);
+  // Pickup is an FPS action: cast from the center of the view, independent of
+  // the OS mouse position (which may be stale while the cursor is captured).
+  const Vector2 screenCenter = {GetScreenWidth() * 0.5f,
+                                GetScreenHeight() * 0.5f};
+  const Ray screenRay = GetScreenToWorldRay(screenCenter, camera);
 
   const b3Vec3 rayOrigin = Vector3ToB3Vec3(screenRay.position);
   const b3Vec3 rayDirection = b3Normalize(Vector3ToB3Vec3(screenRay.direction));

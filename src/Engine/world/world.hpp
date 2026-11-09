@@ -2,8 +2,8 @@
 
 #include "box3d/id.h"
 #include "engine/engine.hpp"
-#include "engine/world/entityRegistry.hpp"
 #include "engine/world/entity.hpp"
+#include "engine/world/entityRegistry.hpp"
 #include <engine/physics/physics.hpp>
 #include <engine/world/quakeBsp.hpp>
 namespace engine {
@@ -39,6 +39,7 @@ private:
   void SpawnTrigger(const Entity &entity);
   void SpawnDynamicProp(const Entity &entity);
   void SpawnWallbuy(const Entity &entity);
+  void SpawnInteractable(const Entity &entity);
   Engine &engine; // why is this here it should not by im not touching it
   EventListener eventListener;
   EntityRegistry entitySpawners;

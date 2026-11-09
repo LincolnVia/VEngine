@@ -1,8 +1,8 @@
 #include <engine/engine.hpp>
 #include <engine/graphics/graphics.hpp>
 #include <engine/world/cubeBrush.hpp>
-#include <engine/world/world.hpp>
 #include <engine/world/quakeUtil.hpp>
+#include <engine/world/world.hpp>
 
 #include "engine/entities.hpp"
 #include "game/world/entities.hpp"
@@ -116,11 +116,14 @@ void World::Interact(b3BodyId bodyId) {
             dynamic_cast<const info_trigger *>(entity.get())) {
       object = &trigger->entityData;
     } else if (const auto *prop =
-            dynamic_cast<const game::prop_dynamic *>(entity.get())) {
+                   dynamic_cast<const prop_dynamic *>(entity.get())) {
       object = &prop->boxdef;
     } else if (const auto *buy =
                    dynamic_cast<const game::wallbuy *>(entity.get())) {
       object = &buy->boxdef;
+    } else if (const auto *interactable =
+                   dynamic_cast<const info_interactable *>(entity.get())) {
+      object = &interactable->boxdef;
     }
     if (object != nullptr && B3_ID_EQUALS(object->bodyId, bodyId)) {
       entity->Interact();
@@ -150,8 +153,7 @@ void World::DrawGameObjects() {
   for (const auto &entity : runtimeEntities) {
     const EnitityData *object = nullptr;
     float scale = 1.0f;
-    if (const auto *prop =
-            dynamic_cast<const game::prop_dynamic *>(entity.get())) {
+    if (const auto *prop = dynamic_cast<const prop_dynamic *>(entity.get())) {
       object = &prop->boxdef;
       scale = prop->modelScale;
     } else if (const auto *buy =
@@ -177,14 +179,17 @@ void World::SpawnEntities() {
   ClearSpawnedEntities();
   entitySpawners.SpawnAll(quakeLevel.getEntities());
 }
-
+void World::SpawnInteractable(const Entity &entity) {}
 void World::RegisterEntitySpawners() {
   entitySpawners.Register(
       "info_trigger", [this](const Entity &entity) { SpawnTrigger(entity); });
+
   entitySpawners.Register("prop_dynamic", [this](const Entity &entity) {
     SpawnDynamicProp(entity);
   });
-
+  entitySpawners.Register("info_interactable", [this](const Entity &entity) {
+    SpawnInteractable(entity);
+  });
   for (const char *className :
        {"wallbuy", "weapon_1911", "weapon_ak47", "weapon_remmington"}) {
     entitySpawners.Register(
@@ -226,7 +231,7 @@ void World::SpawnDynamicProp(const Entity &entity) {
   if (!model) {
     return;
   }
-  runtimeEntities.push_back(std::make_unique<game::prop_dynamic>(
+  runtimeEntities.push_back(std::make_unique<prop_dynamic>(
       CreateModelObject(worldId, *model), model->transform.scale));
 }
 
@@ -238,7 +243,7 @@ void World::SpawnWallbuy(const Entity &entity) {
   }
 
   auto buy = std::make_unique<game::wallbuy>(CreateModelObject(worldId, *model),
-                                       model->transform.scale);
+                                             model->transform.scale);
   buy->cost = view.Int("cost", 0);
   buy->purchased = view.Int("purchased", 0);
   runtimeEntities.push_back(std::move(buy));

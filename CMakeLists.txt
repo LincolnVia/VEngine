@@ -12,7 +12,6 @@ include(FetchContent)
 
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 # Dependencies
 set(RAYLIB_VERSION 6.0)
 set(BUILD_DEBUG ON)

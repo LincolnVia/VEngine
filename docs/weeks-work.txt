@@ -26,3 +26,9 @@ add to vector and update
 
 AIController gets passed in a forward declaration Player that way each game can use a cutom player
 I will be using a engine template 3rdPersonCharacter
+
+
+
+Create Test interaction button
+Remember how interaction works
+

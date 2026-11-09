@@ -1,8 +1,10 @@
 #include "box3d/math_functions.h"
+#include "engine/entities.hpp"
 #include "engine/physics/physics.hpp"
 #include "engine/utils.hpp"
 #include "engine/world/entityRegistry.hpp"
 #include "game/world/entities.hpp"
+#include "raylib.h"
 #include <box3d/box3d.h>
 #include <box3d/id.h>
 #include <box3d/types.h>
@@ -46,6 +48,7 @@ void FirstPersonCharacter::CreatePhysicsBody() {
 
 void FirstPersonCharacter::Init(World &world, bool captureCursor) {
   _world = &world;
+  interactionSystem.Init(world);
 
   CreatePhysicsBody();
 
@@ -60,16 +63,6 @@ void FirstPersonCharacter::Init(World &world, bool captureCursor) {
   } else {
     EnableCursor();
   }
-
-  gunModel = LoadModel("resources/models/portalgun.gltf");
-
-  gunTarget = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-
-  gunCamera.position = {0.0f, 0.0f, 4.0f};
-  gunCamera.target = {0.0f, 0.0f, 0.0f};
-  gunCamera.up = {0.0f, 1.0f, 0.0f};
-  gunCamera.fovy = 45.0f;
-  gunCamera.projection = CAMERA_PERSPECTIVE;
 }
 FirstPersonCharacter::~FirstPersonCharacter() { UnloadModel(gunModel); }
 
@@ -85,7 +78,7 @@ void FirstPersonCharacter::Teleport(Vector3 position, float angle) {
 void FirstPersonCharacter::Input() {
   HandleCameraLook();
   HandlePlayerMovement();
-  HandleMouseInput();
+  interactionSystem.Update(camera);
   PickupPhysicsObject();
 }
 
@@ -103,16 +96,7 @@ void FirstPersonCharacter::Update() {
   camera.target = B3Vec3ToVector3(b3Add(cameraPosition, view));
 }
 
-void FirstPersonCharacter::RenderGunTexture() {
-  BeginTextureMode(gunTarget);
-  ClearBackground({0, 0, 0, 0}); // transparent
-  BeginMode3D(gunCamera);
-  DrawModel(gunModel, {1, -1, 0}, 0.02f, WHITE);
-  EndMode3D();
-  EndTextureMode();
-}
-
-void FirstPersonCharacter::Draw() {}
+void FirstPersonCharacter::Draw() { DisplayGrabPoint(); }
 
 void FirstPersonCharacter::HandleCameraLook() {
   Vector2 mouseDelta = GetMouseDelta();
@@ -195,50 +179,10 @@ void FirstPersonCharacter::HandlePlayerMovement() {
   b3Body_SetLinearVelocity(collider.bodyId, vel);
 }
 
-// Refactor for walls instead of companion cube
-void FirstPersonCharacter::HandleMouseInput() {
-  RayFireResult ray =
-      FireCameraRay(camera, *_world, 100.0f,
-                    CollisionCategory::World | CollisionCategory::Trigger |
-                        CollisionCategory::Dynamic);
-
-  DrawRayDebug(ray.origin, ray.translation);
-
-  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-    if (ray.hit.hit) {
-      b3ShapeId shapeId = ray.hit.shapeId;
-      b3BodyId bodyId = b3Shape_GetBody(shapeId);
-      _world->Interact(bodyId);
-
-      const b3Vec3 hitPoint = b3ToVec3(ray.hit.point);
-      if (debugMode) {
-        printf("Hit object!\n");
-        printf("Hit Point: %.2f %.2f %.2f\n", hitPoint.x, hitPoint.y,
-               hitPoint.z);
-        printf("Normal: %.2f %.2f %.2f\n", ray.hit.normal.x, ray.hit.normal.y,
-               ray.hit.normal.z);
-      }
-      // Get BoxDef from bodyId
-      EnitityData *hitBox = nullptr;
-
-      for (auto &box : _world->GetSceneObjects()) {
-        if (B3_ID_EQUALS(box.bodyId, bodyId)) {
-          hitBox = &box;
-          break;
-        }
-      }
-      if (hitBox && hitBox->name == "companion_cube") {
-        printf("Hit companion cube\n");
-      }
-    } else {
-      printf("No hit.\n");
-    }
-  }
-  // void* userData = b3Shape_GetUserData(ray.hit.shapeId);
-}
-
 void FirstPersonCharacter::PickupPhysicsObject() {
   if (IsKeyPressed(KEY_E) && heldObject != nullptr) {
+    printf("[Pickup] Dropping %s (body %i)\n", heldObject->name.c_str(),
+           heldObject->bodyId.index1);
     // Dropping removes the constraint and helper body, then restores the
     // object's normal physics tuning. Velocity is kept, but capped so the
     // cube can be thrown without gaining runaway speed from the hold joint.
@@ -268,90 +212,102 @@ void FirstPersonCharacter::PickupPhysicsObject() {
     return;
   }
   if (IsKeyPressed(KEY_E) && heldObject == nullptr && cooldownTimer <= 0.0f) {
+
     RayFireResult ray =
         FireCameraSphereRay(camera, *_world, pickupDistance, pickupRadius,
                             CollisionCategory::Dynamic);
 
-    if (ray.hit.hit) {
-      b3ShapeId shapeId = ray.hit.shapeId;
-      b3BodyId bodyId = b3Shape_GetBody(shapeId);
+    if (!ray.hit.hit) {
+      printf("[Pickup] No hit (distance %.2f, radius %.2f)\n", pickupDistance,
+             pickupRadius);
+      return;
+    }
 
-      EnitityData *hitBox = nullptr;
+    const b3ShapeId shapeId = ray.hit.shapeId;
+    const b3BodyId bodyId = b3Shape_GetBody(shapeId);
+    printf("[Pickup] Hit shape %i on body %i at (%.2f, %.2f, %.2f)\n",
+           shapeId.index1, bodyId.index1, ray.hit.point.x, ray.hit.point.y,
+           ray.hit.point.z);
 
-      printf("Hit boxId =%i \n", bodyId.index1);
-      // simplify this by using a function in world to get the boxdef from
-      // bodyid
-
-      for (const auto &entity : _world->getRuntimeEntities()) {
-        if (auto *dynamicBox =
-                dynamic_cast<game::prop_dynamic *>(entity.get())) {
-
+    EnitityData *hitBox = nullptr;
+    for (const auto &entity : _world->getRuntimeEntities()) {
+      if (auto *dynamicBox = dynamic_cast<prop_dynamic *>(entity.get())) {
+        if (B3_ID_EQUALS(dynamicBox->boxdef.bodyId, bodyId)) {
           hitBox = &dynamicBox->boxdef;
+          break;
         }
       }
-
-      if (hitBox != nullptr) {
-        printf("Holding %s\n", hitBox->name.c_str());
-        setHeldObject(hitBox);
-
-        // Preserve the cube's normal physics settings. While held, gravity and
-        // low damping fight the hold joint and make the cube sag or slingshot.
-        heldObjectGravityScale = b3Body_GetGravityScale(heldObject->bodyId);
-        heldObjectLinearDamping = b3Body_GetLinearDamping(heldObject->bodyId);
-        heldObjectAngularDamping = b3Body_GetAngularDamping(heldObject->bodyId);
-
-        b3Body_SetGravityScale(heldObject->bodyId, 0.0f);
-        b3Body_SetLinearDamping(heldObject->bodyId, heldLinearDampingWhileHeld);
-        b3Body_SetAngularDamping(heldObject->bodyId,
-                                 heldAngularDampingWhileHeld);
-        b3Body_SetLinearVelocity(heldObject->bodyId, b3Vec3_zero);
-        b3Body_SetAngularVelocity(heldObject->bodyId, b3Vec3_zero);
-
-        // This invisible kinematic body is the point the cube follows. Moving a
-        // target body lets Box3D solve collisions instead of teleporting the
-        // cube.
-        b3BodyDef targetDef = b3DefaultBodyDef();
-        targetDef.type = b3_kinematicBody;
-        targetDef.position = b3ToPos(GetHoldPosition());
-        targetDef.enableSleep = false;
-        holdTargetBodyId = b3CreateBody(_world->GetWorldId(), &targetDef);
-
-        // Motor joint:
-        // body A is the kinematic hold target, body B is the cube.
-        // localFrameA/B identity means the cube center tries to match the
-        // target body origin.
-        b3MotorJointDef jointDef = b3DefaultMotorJointDef();
-        jointDef.base.bodyIdA = holdTargetBodyId;
-        jointDef.base.bodyIdB = heldObject->bodyId;
-        jointDef.base.localFrameA = b3Transform_identity;
-        jointDef.base.localFrameB = b3Transform_identity;
-
-        // Hertz is spring stiffness: higher means snappier, but too high can
-        // jitter. Damping > 1 is slightly overdamped so it returns without
-        // bouncing around the hold point.
-        jointDef.linearHertz = heldLinearHertz;
-        jointDef.linearDampingRatio = heldLinearDampingRatio;
-        jointDef.maxSpringForce = heldMaxSpringForce;
-
-        // Angular spring keeps the cube from tumbling wildly while held.
-        jointDef.angularHertz = heldAngularHertz;
-        jointDef.angularDampingRatio = heldAngularDampingRatio;
-        jointDef.maxSpringTorque = heldMaxSpringTorque;
-
-        // Zero desired relative velocity with a force limit acts like a brake:
-        // it removes flyaway energy without making the cube completely rigid.
-        jointDef.linearVelocity = b3Vec3_zero;
-        jointDef.angularVelocity = b3Vec3_zero;
-        jointDef.maxVelocityForce = heldMaxVelocityForce;
-        jointDef.maxVelocityTorque = heldMaxVelocityTorque;
-
-        holdJointId = b3CreateMotorJoint(_world->GetWorldId(), &jointDef);
-        b3Body_SetAwake(heldObject->bodyId, true);
-
-        cooldownTimer = holdCooldown; // Reset the cooldown timer
-      }
     }
+
+    if (hitBox == nullptr) {
+      printf("[Pickup] Hit body %i is not a runtime dynamic prop\n",
+             bodyId.index1);
+      return;
+    }
+
+    printf("[Pickup] Holding %s (body %i)\n", hitBox->name.c_str(),
+           hitBox->bodyId.index1);
+    setHeldObject(hitBox);
+
+    // Preserve the cube's normal physics settings. While held, gravity
+    // and low damping fight the hold joint and make the cube sag or
+    // slingshot.
+    heldObjectGravityScale = b3Body_GetGravityScale(heldObject->bodyId);
+    heldObjectLinearDamping = b3Body_GetLinearDamping(heldObject->bodyId);
+    heldObjectAngularDamping = b3Body_GetAngularDamping(heldObject->bodyId);
+
+    b3Body_SetGravityScale(heldObject->bodyId, 0.0f);
+    b3Body_SetLinearDamping(heldObject->bodyId, heldLinearDampingWhileHeld);
+    b3Body_SetAngularDamping(heldObject->bodyId, heldAngularDampingWhileHeld);
+    b3Body_SetLinearVelocity(heldObject->bodyId, b3Vec3_zero);
+    b3Body_SetAngularVelocity(heldObject->bodyId, b3Vec3_zero);
+
+    // This invisible kinematic body is the point the cube follows. Moving
+    // a target body lets Box3D solve collisions instead of teleporting
+    // the cube.
+    b3BodyDef targetDef = b3DefaultBodyDef();
+    targetDef.type = b3_kinematicBody;
+    targetDef.position = b3ToPos(GetHoldPosition());
+    targetDef.enableSleep = false;
+    holdTargetBodyId = b3CreateBody(_world->GetWorldId(), &targetDef);
+
+    // Motor joint:
+    // body A is the kinematic hold target, body B is the cube.
+    // localFrameA/B identity means the cube center tries to match the
+    // target body origin.
+    b3MotorJointDef jointDef = b3DefaultMotorJointDef();
+    jointDef.base.bodyIdA = holdTargetBodyId;
+    jointDef.base.bodyIdB = heldObject->bodyId;
+    jointDef.base.localFrameA = b3Transform_identity;
+    jointDef.base.localFrameB = b3Transform_identity;
+
+    // Hertz is spring stiffness: higher means snappier, but too high can
+    // jitter. Damping > 1 is slightly overdamped so it returns without
+    // bouncing around the hold point.
+    jointDef.linearHertz = heldLinearHertz;
+    jointDef.linearDampingRatio = heldLinearDampingRatio;
+    jointDef.maxSpringForce = heldMaxSpringForce;
+
+    // Angular spring keeps the cube from tumbling wildly while held.
+    jointDef.angularHertz = heldAngularHertz;
+    jointDef.angularDampingRatio = heldAngularDampingRatio;
+    jointDef.maxSpringTorque = heldMaxSpringTorque;
+
+    // Zero desired relative velocity with a force limit acts like a
+    // brake: it removes flyaway energy without making the cube completely
+    // rigid.
+    jointDef.linearVelocity = b3Vec3_zero;
+    jointDef.angularVelocity = b3Vec3_zero;
+    jointDef.maxVelocityForce = heldMaxVelocityForce;
+    jointDef.maxVelocityTorque = heldMaxVelocityTorque;
+
+    holdJointId = b3CreateMotorJoint(_world->GetWorldId(), &jointDef);
+    b3Body_SetAwake(heldObject->bodyId, true);
+
+    cooldownTimer = holdCooldown; // Reset the cooldown timer
+    return;
   }
+
   // If the player is holding an object, update its position to stay in front of
   // the player
   if (heldObject != nullptr) {

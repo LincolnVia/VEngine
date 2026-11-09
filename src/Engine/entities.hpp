@@ -1,6 +1,8 @@
 #pragma once
 #include "box3d/id.h"
+#include "engine/physics/physics.hpp"
 #include "world/entity.hpp"
+#include <cstdio>
 namespace engine {
 
 struct prop_dynamic : engine::RuntimeEntity {
@@ -11,6 +13,15 @@ struct prop_dynamic : engine::RuntimeEntity {
   prop_dynamic(engine::EnitityData object, float scale)
       : boxdef(std::move(object)), modelScale(scale) {}
   ~prop_dynamic() override { engine::DestroyRuntimeBody(boxdef); }
+};
+struct info_interactable : public engine::RuntimeEntity {
+  engine::EnitityData boxdef;
+  int enabled = 1;
+  int target = -1;
+  int triggered = 0;
+  info_interactable(engine::EnitityData object) : boxdef(std::move(object)) {}
+  ~info_interactable() override { engine::DestroyRuntimeBody(boxdef); }
+  void Interact() override { printf("Interacted with info_interactable"); }
 };
 
 struct info_trigger : public engine::RuntimeEntity {
