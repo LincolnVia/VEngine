@@ -1,9 +1,11 @@
 #include "engine/template/first_person_character.hpp"
+#include "engine/systems/triggerManager.hpp"
 #include <engine/box3d_world.hpp>
 #include <raylib.h>
 
 namespace engine {
 Box3DWorld::Box3DWorld(Engine &engine, FirstPersonCharacter &_player,
+
                        bool captureCursor)
     : engine(engine), world(engine), player(_player),
       enablePlayerInput(captureCursor) {
@@ -11,6 +13,7 @@ Box3DWorld::Box3DWorld(Engine &engine, FirstPersonCharacter &_player,
   engine.getAssetManager().Init();
   world.Init();
   player.Init(world, captureCursor);
+  triggerManager = new TriggerManager(world, player.getEntityData().bodyId);
 }
 
 bool Box3DWorld::LoadBspLevel(const std::filesystem::path &path) {
@@ -23,6 +26,9 @@ bool Box3DWorld::LoadBspLevel(const std::filesystem::path &path) {
   return true;
 }
 
-void Box3DWorld::Update() { world.Update(); }
+void Box3DWorld::Update() {
+  world.Update();
+  triggerManager->Update();
+}
 
 } // namespace engine

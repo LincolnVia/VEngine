@@ -29,6 +29,7 @@ public:
   void LoadModelToStorage(const std::string &name,
                           const std::string &fileName) {
     Model model = LoadModel(fileName.c_str());
+
     models.emplace(name, model);
     printf("%s Loaded Into Model Storage\n", name.c_str());
   }

@@ -7,6 +7,8 @@ target_sources(Box3dEngine PRIVATE
     engine/world/world.cpp
     engine/world/entityRegistry.cpp
     engine/world/quakeBsp.cpp
+    engine/systems/interaction.cpp
+    engine/systems/triggerManager.cpp
     engine/template/first_person_character.cpp
 )
 

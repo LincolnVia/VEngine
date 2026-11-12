@@ -5,14 +5,15 @@
 {
 "classname" "worldspawn"
 "_tb_mod" "tools"
+"_tb_def" "external:tools/trenchbroom/VEngine/VEngine.fgd"
 // brush 0
 {
-( -1168 -256 -16 ) ( -1168 -255 -16 ) ( -1168 -256 -15 ) rooftiles2 0 0 0 1 1
-( -256 -1040 -16 ) ( -256 -1040 -15 ) ( -255 -1040 -16 ) rooftiles2 0 0 0 1 1
-( -256 -256 -16 ) ( -255 -256 -16 ) ( -256 -255 -16 ) rooftiles2 0 0 0 1 1
-( 256 256 0 ) ( 256 257 0 ) ( 257 256 0 ) rooftiles2 0 0 0 1 1
-( 256 848 -16 ) ( 257 848 -16 ) ( 256 848 -15 ) rooftiles2 0 0 0 1 1
-( 1488 256 -16 ) ( 1488 256 -15 ) ( 1488 257 -16 ) rooftiles2 0 0 0 1 1
+( -1168 -256 -16 ) ( -1168 -255 -16 ) ( -1168 -256 -15 ) seamlessTextures/100_1395_seamless 0 0 0 0.2 0.2
+( -256 -1040 -16 ) ( -256 -1040 -15 ) ( -255 -1040 -16 ) seamlessTextures/100_1395_seamless 0 0 0 0.2 0.2
+( -256 -256 -16 ) ( -255 -256 -16 ) ( -256 -255 -16 ) seamlessTextures/100_1395_seamless 0 0 0 0.2 0.2
+( 256 256 0 ) ( 256 257 0 ) ( 257 256 0 ) seamlessTextures/100_1395_seamless 0 0 0 0.2 0.2
+( 256 848 -16 ) ( 257 848 -16 ) ( 256 848 -15 ) seamlessTextures/100_1395_seamless 0 0 0 0.2 0.2
+( 1488 256 -16 ) ( 1488 256 -15 ) ( 1488 257 -16 ) seamlessTextures/100_1395_seamless 0 0 0 0.2 0.2
 }
 // brush 1
 {
@@ -60,11 +61,20 @@
 ( 64 606.4 16 ) ( 65 606.4 16 ) ( 64 606.3000000000001 17 ) VEngine/metal_bare_2 0 -5.9637527 0 1 1.0805517
 ( 64 606.4 16 ) ( 64 606.3000000000001 17 ) ( 64 607.4 16 ) VEngine/metal_bare_2 8 -8.656563 0 1 1.1213365
 }
+// brush 6
+{
+( -320 -32 0 ) ( -320 -31 0 ) ( -320 -32 1 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( -320 -32 0 ) ( -320 -32 1 ) ( -319 -32 0 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( -320 -32 0 ) ( -319 -32 0 ) ( -320 -31 0 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( -192 64 96 ) ( -192 65 96 ) ( -191 64 96 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( -192 64 16 ) ( -191 64 16 ) ( -192 64 17 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( -192 64 16 ) ( -192 64 17 ) ( -192 65 16 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+}
 }
 // entity 1
 {
 "classname" "info_player_start"
-"origin" "-128 208 32"
+"origin" "-128 208 40"
 "angle" "0"
 }
 // entity 2
@@ -75,54 +85,146 @@
 }
 // entity 3
 {
-"classname" "info_trigger"
-"target" "6"
-// brush 0
-{
-( 224 208 0 ) ( 224 209 0 ) ( 224 208 1 ) Purple/texture_08 -112 0 0 1 1
-( 224 208 0 ) ( 224 208 1 ) ( 225 208 0 ) Purple/texture_08 -128 0 0 1 1
-( 224 208 16 ) ( 225 208 16 ) ( 224 209 16 ) Purple/texture_08 -128 112 0 1 1
-( 784 672 240 ) ( 784 673 240 ) ( 785 672 240 ) Purple/texture_08 -128 112 0 1 1
-( 784 672 16 ) ( 785 672 16 ) ( 784 672 17 ) Purple/texture_08 -128 0 0 1 1
-( 784 672 16 ) ( 784 672 17 ) ( 784 673 16 ) Purple/texture_08 -112 0 0 1 1
-}
+"classname" "prop_dynamic"
+"origin" "-48 50 40"
+"model" "companion_cube.glb"
+"scale" "1"
 }
 // entity 4
 {
-"classname" "prop_dynamic"
-"origin" "-80 130 28"
-"model" "companion_cube.glb"
-"scale" "1"
+"classname" "info_hound_spawn"
+"model" ""
+"spawnrate" "0"
+"limit" "1"
+"enabled" "1"
+"origin" "264 104 48"
 }
 // entity 5
 {
 "classname" "prop_dynamic"
-"origin" "880 -64 56"
-"model" "portalgun.gltf"
-"scale" ".03"
+"origin" "-48 8 40"
+"model" "companion_cube.glb"
+"scale" "1"
 }
 // entity 6
 {
-"classname" "info_zombie_spawn"
-"origin" "120 40 16"
-"angles" "-90 0 0"
+"classname" "info_interactable"
+"triggered" "0"
+"enabled" "1"
+"origin" "-152 16 48"
+"text" "Press [E] to interact"
 }
 // entity 7
 {
-"classname" "info_zombie_spawn"
-"origin" "56 -136 16"
-"angle" "-1"
-"property 1" ""
+"classname" "info_trigger"
+"triggered" "0"
 "enabled" "1"
+"target" "3"
+// brush 0
+{
+( 256 368 0 ) ( 256 369 0 ) ( 256 368 1 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( 256 344 0 ) ( 256 344 1 ) ( 257 344 0 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( 256 368 0 ) ( 257 368 0 ) ( 256 369 0 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( 704 632 152 ) ( 704 633 152 ) ( 705 632 152 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( 704 632 8 ) ( 705 632 8 ) ( 704 632 9 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+( 704 632 8 ) ( 704 632 9 ) ( 704 633 8 ) seamlessTextures/100_1383_seamless 0 0 0 1 1
+}
 }
 // entity 8
 {
-"classname" "info_hound_spawn"
-"angle" "-1"
-"spawnrate" "0"
-"limit" "1"
-"enabled" "1"
-"origin" "296 136 16"
-"model" "cod_ghosts_hellhound.glb"
-"property 1" ""
+"classname" "prop_dynamic"
+"origin" "0 6 40"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 9
+{
+"classname" "prop_dynamic"
+"origin" "0 48 40"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 10
+{
+"classname" "prop_dynamic"
+"origin" "0 6 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 11
+{
+"classname" "prop_dynamic"
+"origin" "-48 50 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 12
+{
+"classname" "prop_dynamic"
+"origin" "0 48 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 13
+{
+"classname" "prop_dynamic"
+"origin" "-48 8 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 14
+{
+"classname" "prop_dynamic"
+"origin" "-48 92 40"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 15
+{
+"classname" "prop_dynamic"
+"origin" "-48 134 40"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 16
+{
+"classname" "prop_dynamic"
+"origin" "-48 134 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 17
+{
+"classname" "prop_dynamic"
+"origin" "-48 92 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 18
+{
+"classname" "prop_dynamic"
+"origin" "0 90 84"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 19
+{
+"classname" "prop_dynamic"
+"origin" "0 90 40"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 20
+{
+"classname" "prop_dynamic"
+"origin" "0 132 40"
+"model" "companion_cube.glb"
+"scale" "1"
+}
+// entity 21
+{
+"classname" "prop_dynamic"
+"origin" "0 132 84"
+"model" "companion_cube.glb"
+"scale" "1"
 }

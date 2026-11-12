@@ -15,9 +15,10 @@ public:
   virtual void Update() {}
   virtual void Update(const b3BodyId &playerId) {}
   virtual void Interact() {}
+  virtual void Draw() {}
 };
 
-inline void DestroyRuntimeBody(EnitityData &object) {
+inline void DestroyRuntimeBody(EntityData &object) {
   if (B3_IS_NON_NULL(object.bodyId)) {
     b3DestroyBody(object.bodyId);
     object.bodyId = b3_nullBodyId;

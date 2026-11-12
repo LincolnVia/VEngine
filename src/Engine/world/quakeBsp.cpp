@@ -72,22 +72,23 @@ std::filesystem::path FindLooseTexture(std::string_view textureName) {
     }
   }
 
-  // Quake's mip texture name field is only 16 bytes. Match a longer loose
-  // filename when qbsp had to truncate the material name (for example,
-  // "barbage_container" becomes "barbage_contain"). Prefer the shortest
-  // match so the base texture wins over named variants such as "_blue".
-  if (textureName.size() < sizeof(BspMipTexture{}.name) - 1) {
-    return {};
-  }
-
+  // BSP names may omit the loose texture's folder and may differ in case.
+  // The 16-byte Quake name also means long source names can be truncated.
+  const std::string requestedName =
+      std::filesystem::path(textureName).filename().string();
+  std::string foldedName = requestedName;
+  std::transform(foldedName.begin(), foldedName.end(), foldedName.begin(),
+                 [](unsigned char character) {
+                   return static_cast<char>(std::tolower(character));
+                 });
   std::filesystem::path bestMatch;
   std::error_code error;
-  for (const std::filesystem::directory_entry &entry :
-       std::filesystem::directory_iterator(textureDirectory, error)) {
-    if (error || !entry.is_regular_file(error)) {
+  std::filesystem::recursive_directory_iterator entry(textureDirectory, error);
+  const std::filesystem::recursive_directory_iterator end;
+  for (; !error && entry != end; entry.increment(error)) {
+    if (!entry->is_regular_file(error) || error)
       continue;
-    }
-    std::string extension = entry.path().extension().string();
+    std::string extension = entry->path().extension().string();
     std::transform(extension.begin(), extension.end(), extension.begin(),
                    [](unsigned char character) {
                      return static_cast<char>(std::tolower(character));
@@ -95,14 +96,20 @@ std::filesystem::path FindLooseTexture(std::string_view textureName) {
     if (extension != ".png" && extension != ".jpg" && extension != ".jpeg") {
       continue;
     }
-    const std::string stem = entry.path().stem().string();
-    if (!stem.starts_with(textureName)) {
+    std::string stem = entry->path().stem().string();
+    std::transform(stem.begin(), stem.end(), stem.begin(),
+                   [](unsigned char character) {
+                     return static_cast<char>(std::tolower(character));
+                   });
+    if (stem != foldedName &&
+        (foldedName.size() < sizeof(BspMipTexture{}.name) - 1 ||
+         !stem.starts_with(foldedName))) {
       continue;
     }
     if (bestMatch.empty() || stem.size() < bestMatch.stem().string().size() ||
         (stem.size() == bestMatch.stem().string().size() &&
-         entry.path().string() < bestMatch.string())) {
-      bestMatch = entry.path();
+         entry->path().string() < bestMatch.string())) {
+      bestMatch = entry->path();
     }
   }
   return bestMatch;
@@ -341,7 +348,8 @@ FindStaticProps(const std::vector<Entity> &entities) {
   std::vector<StaticPropDefinition> props;
   for (const Entity &entity : entities) {
     const EntityView properties(entity);
-    if (properties.ClassName() != "prop_static") {
+    if (properties.ClassName() != "prop_static" &&
+        properties.ClassName() != "info_interactable") {
       continue;
     }
     const std::string *model = properties.Find("model");
@@ -382,6 +390,7 @@ bool QuakeBspLevel::Load(const std::filesystem::path &path, b3WorldId worldId,
     entities = _entities;
     const std::vector<StaticPropDefinition> staticProps =
         FindStaticProps(entities);
+
     const BspModel &_worldModel = bsp.At<BspModel>(bsp.header.models, 0);
     if (_worldModel.firstFace < 0 || _worldModel.faceCount <= 0 ||
         static_cast<uint64_t>(_worldModel.firstFace) + _worldModel.faceCount >
@@ -522,6 +531,8 @@ bool QuakeBspLevel::Load(const std::filesystem::path &path, b3WorldId worldId,
     collisionBodyId = b3CreateBody(worldId, &bodyDef);
     b3ShapeDef shapeDef = b3DefaultShapeDef();
     shapeDef.baseMaterial.friction = 0.8f;
+    // Keep the BSP world out of the interactable ray mask. The interaction
+    // query should hit the entity's own collision body, not the level mesh.
     shapeDef.filter.categoryBits = CollisionCategory::Static;
     shapeDef.filter.maskBits =
         CollisionCategory::Dynamic | CollisionCategory::Player;

@@ -3,15 +3,15 @@ LoadBSPFile: 'initial_box3d.bsp'
 BSP is version Quake BSP bsp29
 INFO: using built-in palette.
 ConvertTextures: WARNING: invalid size data for skip
-ConvertTextures: WARNING: invalid size data for rooftiles2
+ConvertTextures: WARNING: invalid size data for 100_1395_seamle
 ConvertTextures: WARNING: invalid size data for road2
 ConvertTextures: WARNING: invalid size data for barbage_contain
 ConvertTextures: WARNING: invalid size data for metal_bare_2
-ConvertTextures: WARNING: invalid size data for texture_08
+ConvertTextures: WARNING: invalid size data for 100_1383_seamle
 Loading extended texinfo flags from initial_box3d.texinfo.json...
 Loading extended content flags from initial_box3d.content.json...
 WARNING: entity at (264 104 48) (info_hound_spawn) has empty key/value "model" ""
-7 entities read, 1 are lights.
+107 entities read, 6 are lights.
 
 --- Options Summary ---
 
@@ -19,21 +19,21 @@ DecompressAllVis: invalid visofs for leaf 0
 Embree_TraceInit: Embree version: 4.4.0
 Embree_TraceInit: 
 	0 sky faces
-	381 solid faces
+	5038 solid faces
 	0 filtered faces
 	0 shadow-casting skip faces
-SetupLights: 1 initial lights
-SetupLights: 1 after surface lights
-SetupLights: 1 after jittering
-Final count: 1 lights, 0 suns in use.
+SetupLights: 6 initial lights
+SetupLights: 6 after surface lights
+SetupLights: 6 after jittering
+Final count: 6 lights, 0 suns in use.
 0 surface light points in use.
 map uses color: false
-lightmap size (total): 4728
+lightmap size (total): 44036
 Lighting Completed.
 
 0 switchable light styles (32 max)
 Writing initial_box3d.bsp as Quake BSP bsp29
-0.020s seconds elapsed
+0.143s seconds elapsed
 0 empty lightmaps
 
 

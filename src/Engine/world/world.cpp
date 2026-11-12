@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <engine/engine.hpp>
 #include <engine/graphics/graphics.hpp>
 #include <engine/world/cubeBrush.hpp>
@@ -5,6 +6,9 @@
 #include <engine/world/world.hpp>
 
 #include "engine/entities.hpp"
+#include "engine/physics/physics.hpp"
+#include "engine/world/entityRegistry.hpp"
+#include "engine/world/quakeBsp.hpp"
 #include "game/world/entities.hpp"
 
 #include "raymath.h"
@@ -75,7 +79,7 @@ bool World::LoadBspLevel(const std::filesystem::path &path) {
   bspStatus =
       TextFormat("%s (%d collision triangles)", quakeLevel.GetPath().c_str(),
                  quakeLevel.GetTriangleCount());
-  for (EnitityData &object : sceneObjects) {
+  for (EntityData &object : sceneObjects) {
     b3Body_Disable(object.bodyId);
   }
   TraceLog(LOG_INFO, "Loaded BSP level: %s", bspStatus.c_str());
@@ -104,58 +108,20 @@ void World::Update() {
     UnloadDroppedFiles(droppedFiles);
   }
   b3World_Step(worldId, timeStep, subStepCount);
-  for (const auto &entity : runtimeEntities) {
-    entity->Update();
-  }
-}
-
-void World::Interact(b3BodyId bodyId) {
-  for (const auto &entity : runtimeEntities) {
-    const EnitityData *object = nullptr;
-    if (const auto *trigger =
-            dynamic_cast<const info_trigger *>(entity.get())) {
-      object = &trigger->entityData;
-    } else if (const auto *prop =
-                   dynamic_cast<const prop_dynamic *>(entity.get())) {
-      object = &prop->boxdef;
-    } else if (const auto *buy =
-                   dynamic_cast<const game::wallbuy *>(entity.get())) {
-      object = &buy->boxdef;
-    } else if (const auto *interactable =
-                   dynamic_cast<const info_interactable *>(entity.get())) {
-      object = &interactable->boxdef;
-    }
-    if (object != nullptr && B3_ID_EQUALS(object->bodyId, bodyId)) {
-      entity->Interact();
-      return;
-    }
-  }
 }
 
 void World::DrawGameObjects() {
-  /*
-   if (!quakeLevel.IsLoaded()) {
-   for (auto &object : GetSceneObjects()) {
-     if (object.type == ModelType::BRUSH) {
-       b3_DrawCubeTex(engine.getAssetManager().getTexture(object.name),
-                      b3Body_GetPosition(object.bodyId), object.halfExtents,
-                      WHITE);
-     }
-     if (object.type == ModelType::MODEL) {
-       b3_DrawModel(
-           engine.getAssetManager().getModel(object.name),
-           B3WorldTransformToMatrix(b3Body_GetTransform(object.bodyId),
-                                    object.halfExtents));
-     }
-   }
- }
-   */
+
   for (const auto &entity : runtimeEntities) {
-    const EnitityData *object = nullptr;
+    const EntityData *object = nullptr;
     float scale = 1.0f;
     if (const auto *prop = dynamic_cast<const prop_dynamic *>(entity.get())) {
       object = &prop->boxdef;
       scale = prop->modelScale;
+    } else if (const auto *interactable =
+                   dynamic_cast<const info_interactable *>(entity.get())) {
+      object = &interactable->boxdef;
+      scale = interactable->modelScale;
     } else if (const auto *buy =
                    dynamic_cast<const game::wallbuy *>(entity.get())) {
       object = &buy->boxdef;
@@ -171,7 +137,7 @@ void World::DrawGameObjects() {
 }
 void World::Draw() {
   DrawSkybox(skyBox);
-  quakeLevel.Draw(engine.getShaderManager().getShader("lighting"));
+  quakeLevel.Draw(engine.getShaderManager().getShader("cel"));
   DrawGameObjects();
 }
 
@@ -179,7 +145,7 @@ void World::SpawnEntities() {
   ClearSpawnedEntities();
   entitySpawners.SpawnAll(quakeLevel.getEntities());
 }
-void World::SpawnInteractable(const Entity &entity) {}
+
 void World::RegisterEntitySpawners() {
   entitySpawners.Register(
       "info_trigger", [this](const Entity &entity) { SpawnTrigger(entity); });
@@ -204,7 +170,7 @@ b3Vec3 ToPhysicsPosition(const Vector3 &position) {
   return {position.x, position.y, position.z};
 }
 
-void ApplyYaw(const EnitityData &object, const EntityTransform &transform) {
+void ApplyYaw(const EntityData &object, const EntityTransform &transform) {
   if (transform.yaw == 0.0f) {
     return;
   }
@@ -214,15 +180,16 @@ void ApplyYaw(const EnitityData &object, const EntityTransform &transform) {
                       b3ToPos(ToPhysicsPosition(transform.position)), rotation);
 }
 
-EnitityData CreateModelObject(b3WorldId worldId, const ModelEntity &model) {
+EntityData CreateModelObject(b3WorldId worldId, const ModelEntity &model) {
   const b3Vec3 position = ToPhysicsPosition(model.transform.position);
-  EnitityData object =
+  EntityData object =
       createDynamicObject(position, model.size, 0.63f, 0.63f, worldId);
   object.type = ModelType::MODEL;
   object.modelPath = model.key;
   ApplyYaw(object, model.transform);
   return object;
 }
+
 } // namespace
 
 void World::SpawnDynamicProp(const Entity &entity) {
@@ -247,6 +214,32 @@ void World::SpawnWallbuy(const Entity &entity) {
   buy->cost = view.Int("cost", 0);
   buy->purchased = view.Int("purchased", 0);
   runtimeEntities.push_back(std::move(buy));
+}
+
+void World::SpawnInteractable(const Entity &entity) {
+  const EntityView view(entity);
+  Entity modelEntity = entity;
+  auto model =
+      ParseModelEntity(engine, EntityView(entity), "info_interactable");
+  if (!model) {
+    return;
+  }
+  // Use the authored model's bounds as the
+  // interaction volume and draw the
+  // same model for the player.
+  auto interactable = std::make_unique<info_interactable>(
+      Vector3{model->transform.position.x, model->transform.position.y,
+              model->transform.position.z},
+      Vector3{model->size.x, model->size.y, model->size.z}, worldId);
+  interactable->boxdef.modelPath = model->key;
+  interactable->modelScale = model->transform.scale;
+  interactable->boxdef.type = ModelType::MODEL;
+  ApplyYaw(interactable->boxdef, model->transform);
+  interactable->boxdef.name = "info_interactable";
+  interactable->triggered = view.Int("triggered", 0);
+  interactable->target = view.Int("target", -1);
+  interactable->enabled = view.Int("enabled", 1);
+  runtimeEntities.push_back(std::move(interactable));
 }
 
 void World::SpawnTrigger(const Entity &entity) {

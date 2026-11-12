@@ -1,5 +1,7 @@
 #pragma once
 
+#include "box3d/types.h"
+#include "engine/graphics/graphics.hpp"
 #include "raylib.h"
 #include <box3d/box3d.h>
 #include <box3d/math_functions.h>
@@ -14,18 +16,14 @@ constexpr uint64_t Static = 1ull << 0;
 constexpr uint64_t Dynamic = 1ull << 1;
 constexpr uint64_t Player = 1ull << 2;
 constexpr uint64_t Trigger = 1ull << 3;
+constexpr uint64_t Interactable = 1ull << 4;
 constexpr uint64_t World = Static | Dynamic;
 constexpr uint64_t All = Static | Dynamic | Player;
 } // namespace CollisionCategory
 
 enum class SurfaceMaterial {
   Default,
-  SpeedGel,
-  BounceGel,
-  PortalWall,
-  DarkWall,
-  PortalFloor,
-  CompanionCube
+
 };
 struct SurfaceMoveStats {
   float speedMultiplier = 1.0f;
@@ -40,23 +38,6 @@ inline SurfaceMoveStats GetSurfaceMoveStats(SurfaceMaterial material) {
             .jumpMultiplier = 1.0f,
             .accelMultiplier = 1.0f,
             .frictionMultiplier = 1.0f};
-  case SurfaceMaterial::SpeedGel:
-    return {.speedMultiplier = 4.55f,
-            .jumpMultiplier = 1.0f,
-            .accelMultiplier = 2.6f,
-            .frictionMultiplier = 0.4f};
-  case SurfaceMaterial::BounceGel:
-    return {.speedMultiplier = 1.0f,
-            .jumpMultiplier = 5.0f,
-            .accelMultiplier = 1.0f,
-            .frictionMultiplier = 1.0f};
-  case SurfaceMaterial::PortalFloor:
-    return {.speedMultiplier = 1.0f,
-            .jumpMultiplier = 1.0f,
-            .accelMultiplier = 1.0f,
-            .frictionMultiplier = 1.0f};
-  default:
-    return {};
   }
 }
 
@@ -202,7 +183,7 @@ enum ModelType {
   MODEL,
 };
 
-struct EnitityData {
+struct EntityData {
   std::string name;
   std::string modelPath;
   SurfaceMaterial material = SurfaceMaterial::Default;
@@ -212,6 +193,7 @@ struct EnitityData {
   b3BoxHull hull{};
   b3Vec3 halfExtents{};
 };
+
 /**
  * @brief Create a Static Object object
  *
@@ -222,11 +204,13 @@ struct EnitityData {
  * @return BoxDef
  */
 
-inline EnitityData
+inline EntityData
 createStaticObject(b3Vec3 position, b3Vec3 scale, b3WorldId worldID,
+                   b3Filter filter,
                    SurfaceMaterial material = SurfaceMaterial::Default,
                    bool isSensor = false) {
-  EnitityData staticObject{};
+
+  EntityData staticObject{};
   b3BodyDef staticBodyDef = b3DefaultBodyDef();
   staticBodyDef.position = b3ToPos(position);
   staticBodyDef.type = b3_staticBody;
@@ -238,11 +222,8 @@ createStaticObject(b3Vec3 position, b3Vec3 scale, b3WorldId worldID,
                     staticObject.halfExtents.z);
 
   b3ShapeDef staticShapeDef = b3DefaultShapeDef();
-  staticShapeDef.filter.categoryBits =
-      isSensor ? CollisionCategory::Trigger : CollisionCategory::Static;
-  staticShapeDef.filter.maskBits =
-      isSensor ? CollisionCategory::Player
-               : CollisionCategory::Dynamic | CollisionCategory::Player;
+  staticShapeDef.filter.categoryBits = filter.categoryBits;
+  staticShapeDef.filter.maskBits = filter.maskBits;
   staticShapeDef.isSensor = isSensor;
   staticShapeDef.enableSensorEvents = isSensor;
   staticObject.shapeId = b3CreateHullShape(staticObject.bodyId, &staticShapeDef,
@@ -261,11 +242,11 @@ createStaticObject(b3Vec3 position, b3Vec3 scale, b3WorldId worldID,
  * @return BoxDef
  */
 
-inline EnitityData
+inline EntityData
 createDynamicObject(b3Vec3 position, b3Vec3 scale, float density,
                     float friction, b3WorldId worldID,
-                    SurfaceMaterial material = SurfaceMaterial::CompanionCube) {
-  EnitityData dynamicObject{};
+                    SurfaceMaterial material = SurfaceMaterial::Default) {
+  EntityData dynamicObject{};
 
   b3BodyDef bodyDef = b3DefaultBodyDef();
   bodyDef.type = b3_dynamicBody;
@@ -288,6 +269,31 @@ createDynamicObject(b3Vec3 position, b3Vec3 scale, float density,
                                             &dynamicObject.hull.base);
 
   return dynamicObject;
+};
+inline EntityData createInteractArea(Vector3 position, Vector3 scale,
+                                     b3WorldId worldID) {
+  EntityData sensorObject{};
+
+  b3BodyDef bodyDef = b3DefaultBodyDef();
+  bodyDef.type = b3_staticBody;
+  bodyDef.position = b3ToPos(Vector3ToB3Vec3(position));
+  bodyDef.isBullet = false;
+  sensorObject.bodyId = b3CreateBody(worldID, &bodyDef);
+
+  sensorObject.halfExtents = {scale.x / 2, scale.y / 2, scale.z / 2};
+  sensorObject.hull =
+      b3MakeBoxHull(sensorObject.halfExtents.x, sensorObject.halfExtents.y,
+                    sensorObject.halfExtents.z);
+
+  b3ShapeDef shapeDef = b3DefaultShapeDef();
+
+  shapeDef.filter.categoryBits = CollisionCategory::Interactable;
+  shapeDef.filter.maskBits = CollisionCategory::Player;
+  shapeDef.isSensor = false;
+  sensorObject.shapeId = b3CreateHullShape(sensorObject.bodyId, &shapeDef,
+                                           &sensorObject.hull.base);
+
+  return sensorObject;
 };
 
 } // namespace engine

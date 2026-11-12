@@ -1,9 +1,10 @@
 #pragma once
 
-#include "engine/template/first_person_character.hpp"
 #include "engine/world/world.hpp"
 #include <engine/engine.hpp>
 namespace engine {
+class FirstPersonCharacter;
+class TriggerManager;
 
 // Owns Box3D gameplay state and coordinates the player with the game world.
 class Box3DWorld {
@@ -18,6 +19,7 @@ private:
   Engine &engine;
   World world;
   FirstPersonCharacter &player;
+  TriggerManager *triggerManager = nullptr;
   bool enablePlayerInput;
 };
 

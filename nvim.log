@@ -1,1 +1,2 @@
 WRN 2026-11-04T10:43:59.749 ?.2        server_start:197: Failed to start server: operation not permitted: /run/user/1000/nvim-new.2.0
+WRN 2026-11-10T15:43:02.294 ?.66160    server_start:197: Failed to start server: operation not permitted: /var/folders/x9/89r5t89x0279s0gwjtsfp8mh0000gn/T/nvim.lincoln/Ol2yZQ/nvim.66160.0

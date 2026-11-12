@@ -1,31 +1,52 @@
 #pragma once
+#include "Signal.h"
+#include "box3d/box3d.h"
 #include "box3d/id.h"
+#include "engine/graphics/graphics.hpp"
 #include "engine/physics/physics.hpp"
+#include "raylib.h"
 #include "world/entity.hpp"
 #include <cstdio>
 namespace engine {
 
 struct prop_dynamic : engine::RuntimeEntity {
-  engine::EnitityData boxdef;
+  engine::EntityData boxdef;
   float modelScale = 1.0f;
   int enabled = 1;
 
-  prop_dynamic(engine::EnitityData object, float scale)
+  prop_dynamic(engine::EntityData object, float scale)
       : boxdef(std::move(object)), modelScale(scale) {}
   ~prop_dynamic() override { engine::DestroyRuntimeBody(boxdef); }
 };
 struct info_interactable : public engine::RuntimeEntity {
-  engine::EnitityData boxdef;
+  EntityData boxdef;
+  Gallant::Signal1<int> OnInteracted;
+  float modelScale = 1.0f;
   int enabled = 1;
   int target = -1;
   int triggered = 0;
-  info_interactable(engine::EnitityData object) : boxdef(std::move(object)) {}
+  info_interactable(Vector3 center, Vector3 halfExtents, b3WorldId &worldId) {
+    boxdef = createStaticObject(
+        {center.x, center.y, center.z},
+        {halfExtents.x, halfExtents.y, halfExtents.z}, worldId,
+        {CollisionCategory::Static | CollisionCategory::Interactable,
+         CollisionCategory::Player | CollisionCategory::World, -1},
+        SurfaceMaterial::Default);
+  }
   ~info_interactable() override { engine::DestroyRuntimeBody(boxdef); }
-  void Interact() override { printf("Interacted with info_interactable"); }
+  void Update(const b3BodyId &playerId) override {}
+
+  void Interact() override {
+    if (!enabled)
+      return;
+    OnInteracted.Emit(target);
+    printf("Interacted with info_interactable");
+  }
 };
 
 struct info_trigger : public engine::RuntimeEntity {
-  EnitityData entityData;
+  EntityData entityData;
+  Gallant::Signal1<int> OnTriggered;
   int target = -1;
   int triggered = 0;
   int enabled = 1;
@@ -33,12 +54,14 @@ struct info_trigger : public engine::RuntimeEntity {
     entityData = createStaticObject(
         {center.x, center.y, center.z},
         {halfExtents.x * 2.0f, halfExtents.y * 2.0f, halfExtents.z * 2.0f},
-        worldId, SurfaceMaterial::Default, true);
+        worldId, {CollisionCategory::Trigger, CollisionCategory::Player, -1},
+        SurfaceMaterial::Default, true);
   }
   ~info_trigger() override { engine::DestroyRuntimeBody(entityData); }
   void on_trigger_collided() {
     if (enabled)
       triggered = 1;
+    OnTriggered.Emit(target);
   }
   void Interact() override { on_trigger_collided(); }
   void Update(const b3BodyId &playerId) override {
@@ -63,9 +86,9 @@ struct info_trigger : public engine::RuntimeEntity {
       if (B3_IS_NULL(playerId))
         return;
 
-      if (B3_ID_EQUALS(visitorId, playerId)) {
+      if (B3_ID_EQUALS(b3Shape_GetBody(visitorId), playerId)) {
         if (!triggered) {
-          triggered = true;
+          Interact();
           TraceLog(LOG_INFO, "Trigger fired (target %d)", target);
         }
       }

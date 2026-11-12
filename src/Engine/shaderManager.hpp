@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "raylib.h"
 #include <cstdio>
 #include <engine/global.hpp>
 #include <raylib.h>
@@ -21,6 +22,13 @@ public:
         TextFormat("resources/shaders/glsl%i/cubemap.vs", GLSL_VERSION),
         TextFormat("resources/shaders/glsl%i/cubemap.fs", GLSL_VERSION));
 
+    LoadShaderToStorage(
+        "cel", "",
+        TextFormat("resources/shaders/glsl%i/cel.frag", GLSL_VERSION));
+
+    LoadShaderToStorage(
+        "post_outline", "",
+        TextFormat("resources/shaders/glsl%i/post_outline.frag", GLSL_VERSION));
     getShader("lighting").locs[SHADER_LOC_MATRIX_MODEL] =
         GetShaderLocation(getShader("lighting"), "matModel");
     getShader("cubemap").locs[SHADER_LOC_VECTOR_VIEW] =
@@ -40,9 +48,16 @@ public:
   void LoadShaderToStorage(const std::string &name,
                            const std::string &fileName_vs,
                            const std::string &fileName_fs) {
-    Shader shader = LoadShader(fileName_vs.c_str(), fileName_fs.c_str());
-    shaders.emplace(name, shader);
-    printf("%s Loaded Into Texture Storage\n", name.c_str());
+    if (fileName_vs == ("")) {
+      Shader shader = LoadShader(0, fileName_fs.c_str());
+      shaders.emplace(name, shader);
+      printf("%s Loaded Into Texture Storage With 0 Vertex\n", name.c_str());
+    }
+    if (fileName_vs != "" && fileName_fs != "") {
+      Shader shader = LoadShader(fileName_vs.c_str(), fileName_fs.c_str());
+      shaders.emplace(name, shader);
+      printf("%s Loaded Into Texture Storage\n", name.c_str());
+    }
   };
 
   Shader &getShader(const std::string &name) { return shaders.at(name); }

@@ -34,21 +34,53 @@ int main(int argc, char *argv[]) {
       argc > 1 ? argv[1] : "resources/scenes/initial_box3d.bsp";
   world.LoadBspLevel(bspPath);
 
+  Vector3 lightDir = Vector3Normalize((Vector3){1.0f, 3.0f, 1.0f});
+  int lightDirLoc =
+      GetShaderLocation(engine.getShaderManager().getShader("cel"), "lightDir");
+  SetShaderValue(engine.getShaderManager().getShader("cel"), lightDirLoc,
+                 &lightDir, SHADER_UNIFORM_VEC3);
+
+  Vector2 renderSize = {(float)GetRenderWidth(), (float)GetRenderHeight()};
+  int renderSizeLoc = GetShaderLocation(
+      engine.getShaderManager().getShader("post_outline"), "renderSize");
+  SetShaderValue(engine.getShaderManager().getShader("post_outline"),
+                 renderSizeLoc, &renderSize, SHADER_UNIFORM_VEC2);
+
+  RenderTexture2D target =
+      LoadRenderTexture(GetRenderWidth(), GetRenderHeight());
+
   while (!engine.ShouldClose()) {
     world.Update();
     if (useMouseInput)
       player.Input();
     player.Update();
     // BEFORE VISUAL CHANGE
-    BeginDrawing();
+
+    BeginTextureMode(target);
     ClearBackground(SKYBLUE);
 
     BeginMode3D(player.getCamera());
-    BeginShaderMode(engine.getShaderManager().getShader("lighting"));
+    BeginShaderMode(engine.getShaderManager().getShader("cel"));
     world.GetWorld().Draw();
     player.Draw();
     EndShaderMode();
     EndMode3D();
+    EndTextureMode();
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+
+    // Activate the edge-detection shader
+    BeginShaderMode(engine.getShaderManager().getShader("post_outline"));
+    // Draw the render texture matching full screen space.
+    // NOTE: Render textures are inverted on the Y axis natively in OpenGL,
+    // so we use a negative height source rectangle to flip it right-side up.
+    DrawTexturePro(
+        target.texture,
+        (Rectangle){0, 0, (float)target.texture.width,
+                    (float)-target.texture.height},
+        (Rectangle){0, 0, (float)GetRenderWidth(), (float)GetRenderHeight()},
+        (Vector2){0, 0}, 0.0f, WHITE);
+    EndShaderMode();
 
     EndDrawing();
   }

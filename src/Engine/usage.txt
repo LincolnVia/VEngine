@@ -1,0 +1,64 @@
+Signals for interactions and triggers
+====================================
+
+Use signals when an entity should announce an event and let other systems
+respond without putting all of that response code inside the entity.
+
+The current event flow can stay the same:
+
+- InteractionSystem calls info_interactable::Interact().
+- info_trigger calls Interact() when the player overlaps it.
+- The entity emits its signal from that method.
+
+Include the signal header in entities.hpp:
+
+    #include "engine/Signal.h"
+
+Add a signal to each entity and emit it when the event occurs:
+
+    struct info_interactable : public engine::RuntimeEntity {
+      // Existing fields...
+      Gallant::Signal1<int> OnInteracted;
+
+      void Interact() override {
+        if (!enabled) return;
+        OnInteracted.Emit(target);
+      }
+    };
+
+    struct info_trigger : public engine::RuntimeEntity {
+      // Existing fields...
+      Gallant::Signal1<int> OnTriggered;
+
+      void on_trigger_collided() {
+        if (!enabled || triggered) return;
+
+        triggered = 1;
+        OnTriggered.Emit(target);
+      }
+
+      void Interact() override {
+        on_trigger_collided();
+      }
+    };
+
+The int parameter passes the entity's existing target value. A receiver must
+provide a compatible member function:
+
+    void DoorSystem::OnTrigger(int target) {
+      OpenDoor(target);
+    }
+
+Connect a receiver when setting up the entities:
+
+    trigger->OnTriggered.Connect(this, &DoorSystem::OnTrigger);
+    interactable->OnInteracted.Connect(this, &DoorSystem::OnInteract);
+
+Gallant::Signal1<int> provides Connect, Disconnect, and Emit(int). Reconnect
+signals when spawning a new level. If a receiver is destroyed while its entity
+is still alive, disconnect it first so the signal cannot call a dead object.
+
+The trigger's triggered guard makes OnTriggered fire once. OnInteracted fires
+each time the player interacts. Keep receiver methods focused on responding to
+the event, such as opening a door or playing a sound; the entity decides when
+the event occurs.

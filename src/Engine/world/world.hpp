@@ -18,9 +18,8 @@ public:
   void Draw();
   void DrawGameObjects();
   void SpawnEntities();
-  void Interact(b3BodyId bodyId);
   b3WorldId GetWorldId() const { return worldId; }
-  std::vector<EnitityData> &GetSceneObjects() { return sceneObjects; }
+  std::vector<EntityData> &GetSceneObjects() { return sceneObjects; }
   bool LoadBspLevel(const std::filesystem::path &path);
   bool HasBspLevel() const { return quakeLevel.IsLoaded(); }
   const std::string &GetBspStatus() const { return bspStatus; }
@@ -47,7 +46,7 @@ private:
   Model skyBox;
 
   b3WorldId worldId{};
-  std::vector<EnitityData> sceneObjects;
+  std::vector<EntityData> sceneObjects;
   QuakeBspLevel quakeLevel;
   std::vector<std::unique_ptr<RuntimeEntity>> runtimeEntities;
 

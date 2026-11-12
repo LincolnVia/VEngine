@@ -32,3 +32,22 @@ I will be using a engine template 3rdPersonCharacter
 Create Test interaction button
 Remember how interaction works
 
+Borderlands Like
+
+interaction simplify functions
+
+
+
+
+
+add a console for commands and a commandsManager for registering commands to functions.
+build a inventory system that has physical objects / realtime weapon animations procedual
+needs to hold a list of equipedItems
+can switch between equipedItems
+can use each weapons functions
+use a class Weapon with virtual 
+void Use() 
+void Update()
+
+
+You will eat less than you desire and more than you deserve

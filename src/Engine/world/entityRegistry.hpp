@@ -46,7 +46,10 @@ struct ModelEntity {
   std::string key;
   b3Vec3 size{};
 };
-
+struct HiddenEntity {
+  EntityTransform transform;
+  b3Vec3 size{};
+};
 std::optional<EntityTransform> ParseEntityTransform(const EntityView &entity,
                                                     std::string_view className);
 std::optional<ModelEntity> ParseModelEntity(Engine &engine,

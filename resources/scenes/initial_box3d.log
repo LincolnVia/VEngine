@@ -9,85 +9,87 @@ Output file: /Users/lincoln/projects/VEngine/resources/scenes/initial_box3d.bsp
 
 INFO: using built-in palette.
 WARNING: No wad or _wad key exists in the worldmodel
-     7 entities
-     6 unique textures
-    30 texinfos
-    68 unique planes
+    113 entities
+      6 unique textures
+     32 texinfos
+     76 unique planes
 
 INFO: world extents calculated to 3208 units
-     7 brushes
-    43 sides
+     8 brushes
+    49 sides
      2 side bevels
 
             0 texture frames added
 WARNING: unable to find texture skip
-WARNING: unable to find texture rooftiles2
+WARNING: unable to find texture 100_1395_seamless
+WARNING: texture 100_1395_seamless name too long for Quake miptex
 WARNING: unable to find texture road2
 WARNING: unable to find texture barbage_container
 WARNING: texture barbage_container name too long for Quake miptex
 WARNING: unable to find texture metal_bare_2
-WARNING: unable to find texture texture_08
+WARNING: unable to find texture 100_1383_seamless
+WARNING: texture 100_1383_seamless name too long for Quake miptex
 Processing hull 0...
-    6 SOLID brushes
-    6 brushes total
-    37 visible sides
-INFO: calculating BSP for 6 brushes with 37 sides
-     6 brushes
-    37 visible faces
-    64 nodes
-    46 expensive split nodes
-    18 mid-split nodes
-    65 leaves
-    21 SOLID leafs
-    44 EMPTY leafs
-    65 leafs total
+    7 SOLID brushes
+    7 brushes total
+    43 visible sides
+INFO: calculating BSP for 7 brushes with 43 sides
+     7 brushes
+    43 visible faces
+    81 nodes
+    49 expensive split nodes
+    32 mid-split nodes
+    82 leaves
+    28 SOLID leafs
+    54 EMPTY leafs
+    82 leafs total
     17 max tree height
      9 avg tree height
-    306 tree portals
+    382 tree portals
 WARNING: Reached occupant "info_hound_spawn" at (264 104 48), no filling performed.
 Leak file written to initial_box3d.pts
             3 portals written to initial_box3d.leak.prt
-    306 tree portals
-    172 sides visible
-     86 makefaces
-     17 merged
-    279 subdivided
-    1 nodes pruned
-    20 SOLID leafs
-    44 EMPTY leafs
-    64 leafs total
+    382 tree portals
+    202 sides visible
+      101 makefaces
+       16 merged
+    4,841 subdivided
+    2 nodes pruned
+    26 SOLID leafs
+    54 EMPTY leafs
+    80 leafs total
     17 max tree height
      9 avg tree height
-    182 edges added by tjunctions
-    347 faces optimized through MWT
-    875 triangles computed from MWT
-     33 faces created via optimization of MWT triangles
-    819 edges
-    381 faces
+       732 edges added by tjunctions
+     4,925 faces optimized through MWT
+    10,581 triangles computed from MWT
+       112 faces created via optimization of MWT triangles
+    10,329 edges
+     5,038 faces
 Processing hull 1...
 WARNING: Reached occupant "info_player_start" at (-128 208 40), no filling performed.
 Processing hull 2...
-WARNING: Reached occupant "info_player_start" at (-128 208 40), no filling performed.
+WARNING: Reached occupant "prop_dynamic" at (0 90 84), no filling performed.
 Writing initial_box3d.bsp as Quake BSP bsp29
 Wrote initial_box3d.bsp
 
 count   lump name    byte size 
       2 models              128
-     96 planes             1920
-    470 vertexes           5640
-     69 nodes              1656
-     28 texinfos           1120
-    404 faces              8080
-    210 clipnodes          1680
-     52 leafs              1456
-    417 marksurfaces        834
-    869 edges              3476
-   1736 surfedges          6944
+    108 planes             2160
+   5323 vertexes          63876
+     85 nodes              2040
+     31 texinfos           1240
+   5061 faces            101220
+    284 clipnodes          2272
+     62 leafs              1736
+   5094 marksurfaces      10188
+  10379 edges             41516
+  20756 surfedges         83024
       6 textures            268
         lightdata             0
         visdata               0
-        entdata             512
+        entdata            9725
 
-0.025s seconds elapsed
+0.063s seconds elapsed
 
 
