@@ -18,6 +18,7 @@
 #include <box3d/types.h>
 #include <cctype>
 
+#include <memory>
 #include <raylib.h>
 #define RLIGHTS_IMPLEMENTATION
 #include <rlights.h>
@@ -122,12 +123,16 @@ void World::DrawGameObjects() {
                    dynamic_cast<const info_interactable *>(entity.get())) {
       object = &interactable->boxdef;
       scale = interactable->modelScale;
+    } else if (const auto *door =
+                   dynamic_cast<const info_door *>(entity.get())) {
+      object = &door->boxdef;
+      scale = door->modelScale;
     } else if (const auto *buy =
                    dynamic_cast<const game::wallbuy *>(entity.get())) {
       object = &buy->boxdef;
       scale = buy->modelScale;
     }
-    if (object != nullptr) {
+    if (object != nullptr && object->enabled) {
       const b3Vec3 modelScale{scale, scale, scale};
       b3_DrawModel(engine.getAssetManager().getModel(object->modelPath),
                    B3WorldTransformToMatrix(b3Body_GetTransform(object->bodyId),
@@ -156,6 +161,9 @@ void World::RegisterEntitySpawners() {
   entitySpawners.Register("info_interactable", [this](const Entity &entity) {
     SpawnInteractable(entity);
   });
+  entitySpawners.Register("info_door",
+                          [this](const Entity &entity) { SpawnDoor(entity); });
+
   for (const char *className :
        {"wallbuy", "weapon_1911", "weapon_ak47", "weapon_remmington"}) {
     entitySpawners.Register(
@@ -182,8 +190,10 @@ void ApplyYaw(const EntityData &object, const EntityTransform &transform) {
 
 EntityData CreateModelObject(b3WorldId worldId, const ModelEntity &model) {
   const b3Vec3 position = ToPhysicsPosition(model.transform.position);
-  EntityData object =
-      createDynamicObject(position, model.size, 0.63f, 0.63f, worldId);
+  EntityData object = createDynamicObject(
+      position, model.size, 0.63f, 0.63f, worldId,
+      {CollisionCategory::Dynamic,
+       CollisionCategory::World | CollisionCategory::Player});
   object.type = ModelType::MODEL;
   object.modelPath = model.key;
   ApplyYaw(object, model.transform);
@@ -201,7 +211,26 @@ void World::SpawnDynamicProp(const Entity &entity) {
   runtimeEntities.push_back(std::make_unique<prop_dynamic>(
       CreateModelObject(worldId, *model), model->transform.scale));
 }
-
+void World::SpawnDoor(const Entity &entity) {
+  const auto model = ParseModelEntity(engine, EntityView(entity), "info_door");
+  const EntityView view(entity);
+  Entity modelEntity = entity;
+  if (!model)
+    return;
+  auto door = std::make_unique<info_door>(
+      Vector3{model->transform.position.x, model->transform.position.y,
+              model->transform.position.z},
+      Vector3{model->size.x, model->size.y, model->size.z}, worldId);
+  door->boxdef.modelPath = model->key;
+  door->modelScale = model->transform.scale;
+  door->boxdef.type = ModelType::MODEL;
+  ApplyYaw(door->boxdef, model->transform);
+  door->boxdef.name = "info_door";
+  door->cost = view.Int("cost", 0);
+  door->openAngle = view.Float("openAngle", 90);
+  door->boxdef.enabled = view.Int("enabled", 1);
+  runtimeEntities.push_back(std::move(door));
+}
 void World::SpawnWallbuy(const Entity &entity) {
   const EntityView view(entity);
   const auto model = ParseModelEntity(engine, view, "wallbuy");
@@ -238,7 +267,7 @@ void World::SpawnInteractable(const Entity &entity) {
   interactable->boxdef.name = "info_interactable";
   interactable->triggered = view.Int("triggered", 0);
   interactable->target = view.Int("target", -1);
-  interactable->enabled = view.Int("enabled", 1);
+  interactable->boxdef.enabled = view.Int("enabled", 1);
   runtimeEntities.push_back(std::move(interactable));
 }
 

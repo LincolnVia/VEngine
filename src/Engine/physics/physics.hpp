@@ -192,6 +192,7 @@ struct EntityData {
   b3ShapeId shapeId{};
   b3BoxHull hull{};
   b3Vec3 halfExtents{};
+  bool enabled = true;
 };
 
 /**
@@ -244,7 +245,7 @@ createStaticObject(b3Vec3 position, b3Vec3 scale, b3WorldId worldID,
 
 inline EntityData
 createDynamicObject(b3Vec3 position, b3Vec3 scale, float density,
-                    float friction, b3WorldId worldID,
+                    float friction, b3WorldId worldID, b3Filter filter,
                     SurfaceMaterial material = SurfaceMaterial::Default) {
   EntityData dynamicObject{};
 

@@ -1,44 +1,8 @@
-EventListener:
-info_triggers broadcast across the EventListener
-
-
-player spawn rotation
-Player Rotation on start
-update camera you dumb fuck | FUCAAAA quit getting distracted by other shit
-
-
-
-Zombie Spawning sync and spawn with trencbroom & raylib + codebase
-files used in
-zombieManager.dynamicProps
-world.cpp
-
-struct info_zombie_spawn {
-  int spawnrate = 1; // Spawn Zombie Rate
-  int limit = -1;    // Max Spawn Ammount | Special Case
-  int enabled = 1;   // Should Update
-  int spawned = 0;   // Spawn Count Tracker
-};
-
-Take all info_zombie_spawn form bsp parse to struct 
-add to vector and update
-
-
 AIController gets passed in a forward declaration Player that way each game can use a cutom player
 I will be using a engine template 3rdPersonCharacter
 
 
-
-Create Test interaction button
-Remember how interaction works
-
 Borderlands Like
-
-interaction simplify functions
-
-
-
-
 
 add a console for commands and a commandsManager for registering commands to functions.
 build a inventory system that has physical objects / realtime weapon animations procedual
@@ -50,4 +14,3 @@ void Use()
 void Update()
 
 
-You will eat less than you desire and more than you deserve

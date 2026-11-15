@@ -11,7 +11,7 @@ ConvertTextures: WARNING: invalid size data for 100_1383_seamle
 Loading extended texinfo flags from initial_box3d.texinfo.json...
 Loading extended content flags from initial_box3d.content.json...
 WARNING: entity at (264 104 48) (info_hound_spawn) has empty key/value "model" ""
-107 entities read, 6 are lights.
+109 entities read, 6 are lights.
 
 --- Options Summary ---
 
@@ -33,7 +33,7 @@ Lighting Completed.
 
 0 switchable light styles (32 max)
 Writing initial_box3d.bsp as Quake BSP bsp29
-0.143s seconds elapsed
+0.413s seconds elapsed
 0 empty lightmaps
 
 

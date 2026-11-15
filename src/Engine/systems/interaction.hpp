@@ -20,7 +20,8 @@ enum class InteractionIntention {
 };
 class InteractionSystem {
 public:
-  InteractionSystem();
+  InteractionSystem(FirstPersonCharacter &player) : player(player) {};
+
   void Init(World &_world, FirstPersonCharacter &_playerData,
             Camera3D *_camera);
   void Input();
@@ -40,7 +41,7 @@ public:
 private:
   World *world = nullptr;
   EntityData *heldObject = nullptr;
-  FirstPersonCharacter *player = nullptr;
+  FirstPersonCharacter &player;
   InteractionIntention lastinteractionIntention = InteractionIntention::NONE;
   Camera3D *camera = nullptr;
   float pitch;

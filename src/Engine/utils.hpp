@@ -36,7 +36,7 @@ inline float CastClosestRayResult(b3ShapeId shapeId, b3Pos point, b3Vec3 normal,
 }
 
 inline RayFireResult FireRay(const b3Vec3 &position, const b3Vec3 direction,
-                             const World &world, float distance,
+                             const b3WorldId &world, float distance,
                              uint64_t maskBits = B3_DEFAULT_MASK_BITS) {
 
   const b3Vec3 rayOrigin = position;
@@ -49,8 +49,8 @@ inline RayFireResult FireRay(const b3Vec3 &position, const b3Vec3 direction,
   b3QueryFilter filter = b3DefaultQueryFilter();
   filter.maskBits = maskBits;
 
-  result.hit = b3World_CastRayClosest(world.GetWorldId(), result.origin,
-                                      result.translation, filter);
+  result.hit =
+      b3World_CastRayClosest(world, result.origin, result.translation, filter);
   if (debugMode) {
     DrawLine3D(B3PosToVector3(result.origin),
                B3PosToVector3(b3OffsetPos(result.origin, result.translation)),

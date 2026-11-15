@@ -9,7 +9,7 @@ Output file: /Users/lincoln/projects/VEngine/resources/scenes/initial_box3d.bsp
 
 INFO: using built-in palette.
 WARNING: No wad or _wad key exists in the worldmodel
-    113 entities
+    115 entities
       6 unique textures
      32 texinfos
      76 unique planes
@@ -88,8 +88,8 @@ count   lump name    byte size
       6 textures            268
         lightdata             0
         visdata               0
-        entdata            9725
+        entdata           10060
 
-0.063s seconds elapsed
+0.237s seconds elapsed
 
 

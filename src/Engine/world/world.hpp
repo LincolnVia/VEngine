@@ -6,6 +6,9 @@
 #include "engine/world/entityRegistry.hpp"
 #include <engine/physics/physics.hpp>
 #include <engine/world/quakeBsp.hpp>
+#include <string>
+#include <unordered_map>
+#include <vector>
 namespace engine {
 class World {
 public:
@@ -31,6 +34,8 @@ public:
   void setRuntimeEntities(int index, std::unique_ptr<RuntimeEntity> val) {
     runtimeEntities[index].swap(val);
   }
+  bool getSignalData(std::string key) const { return signals.at(key); }
+  void setTriggers(std::string key, bool val) { signals[key] = val; }
 
 private:
   void RegisterEntitySpawners();
@@ -39,9 +44,12 @@ private:
   void SpawnDynamicProp(const Entity &entity);
   void SpawnWallbuy(const Entity &entity);
   void SpawnInteractable(const Entity &entity);
+  void SpawnDoor(const Entity &entity);
   Engine &engine; // why is this here it should not by im not touching it
   EventListener eventListener;
   EntityRegistry entitySpawners;
+  std::unordered_map<std::string, bool> signals;
+  ;
 
   Model skyBox;
 

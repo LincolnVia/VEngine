@@ -1,0 +1,31 @@
+# VEngine: Grilled Plan
+
+## Goal
+
+Build VEngine into a C++ game engine for making your own games, targeting macOS and Windows.
+
+## Technology
+
+- Use Sokol for rendering, shaders, window creation, and input.
+- Keep Box3D for physics.
+- Use Lua for game rules, object behavior, and mods.
+- Save editor-authored levels and game data as readable JSON.
+
+## First Game: Bowling
+
+- Make a single-player bowling game the first playable project.
+- Use a third-person camera and an original style inspired by Wii Sports.
+- Aim for believable ball and pin physics with forgiving, arcade-style controls.
+- Support gamepad throws using the right stick and mouse throws using drag and release.
+
+## Editor and Modding
+
+- Build a separate desktop editor for placing and tuning objects and game data.
+- Start with a built-in bowling lane.
+- Give Lua scripts a narrow gameplay API.
+- Support mods containing scripts, data, levels, and assets. Let scripts define behavior for objects built from existing engine components.
+
+## Distribution
+
+- Package games as standalone builds for macOS and Windows.
+- Include a mod folder for player-created content.

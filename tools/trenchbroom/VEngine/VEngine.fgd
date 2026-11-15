@@ -42,6 +42,16 @@
     triggered(integer) : "Triggered" : 0
     enabled(integer) : "Enabled" : 1
 ]
+@PointClass size(-16 -16 -16, 16 16 16) color(255 255 100) = info_door : "Door"
+[
+    model(string) : "Model" : "companion_cube.glb"
+    angle(integer) : "Yaw" : 0
+    scale(float) : "Uniform scale" : "1"
+    cost(integer) : "Cost" : 500 
+    text(string) : "Press [E] to Interact" : "Press [E] to interact"
+    
+    enabled(integer) : "Enabled" : 1
+]
 @PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/heavy_zombie.glb", "scale": "60"}) = info_zombie_spawn : "Enemy spawner"
 [ 
     model(string) : "ModelPath" : ""

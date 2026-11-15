@@ -5,6 +5,8 @@
 
 namespace engine {
 
+class FirstPersonCharacter;
+
 class RuntimeEntity {
 public:
   RuntimeEntity() = default;
@@ -14,6 +16,8 @@ public:
   virtual ~RuntimeEntity() = default;
   virtual void Update() {}
   virtual void Update(const b3BodyId &playerId) {}
+  virtual void Interact(FirstPersonCharacter &first_person_character) {}
+
   virtual void Interact() {}
   virtual void Draw() {}
 };

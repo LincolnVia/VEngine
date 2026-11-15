@@ -968,11 +968,33 @@
 // entity 112
 {
 "classname" "info_interactable"
-"model" "hellhound/hellhound.obj"
 "angle" "0"
 "scale" "1.000000"
 "text" "Press [E] to interact"
 "triggered" "0"
 "enabled" "1"
-"origin" "16 256 24"
+"origin" "-160 -16 24"
+"target" "201"
+}
+// entity 113
+{
+"classname" "info_door"
+"model" "companion_cube.glb"
+"angle" "0"
+"scale" "1.000000"
+"cost" "500"
+"text" "Press [E] to interact"
+"enabled" "1"
+"origin" "-336 240 24"
+}
+// entity 114
+{
+"classname" "info_interactable"
+"model" "companion_cube.glb"
+"angle" "0"
+"scale" "1.000000"
+"text" "Press [E] to interact"
+"triggered" "0"
+"enabled" "1"
+"origin" "32 240 24"
 }

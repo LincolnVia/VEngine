@@ -1,33 +1,33 @@
 #pragma once
 
-#include "engine/graphics/graphics.hpp"
+#include "box3d/id.h"
+#include "camera.hpp"
 #include "engine/physics/physics.hpp"
 #include "engine/systems/interaction.hpp"
+#include "engine/template/movement.hpp"
 #include "raylib.h"
 namespace engine {
 
 class World;
-
-struct CameraRotation {
-  float yaw = 0;
-  float pitch = 0;
-  float roll = 0;
+struct GameStats {
+  int points = 1000;
+  int kills = 0;
+  void Draw() {
+    DrawText(TextFormat("Point: %i", points), 10, 100, 16, BLACK);
+    DrawText(TextFormat("Kill: %i", kills), 10, 132, 16, BLACK);
+  }
 };
-
 class FirstPersonCharacter {
 public:
-  FirstPersonCharacter() = default;
+  FirstPersonCharacter() : interactionSystem(*this) {};
+
   ~FirstPersonCharacter();
 
   void Init(World &world, bool captureCursor = true);
   void CreatePhysicsBody();
 
-  void Input();
   void Update();
   void Draw();
-
-  void HandlePlayerMovement();
-  void HandleCameraLook();
 
   void Teleport(Vector3 position, float angle = 0);
 
@@ -36,36 +36,32 @@ public:
   b3Vec3 getVelocity() const {
     return b3Body_GetLinearVelocity(collider.bodyId);
   }
-  Camera3D &getCamera() { return camera; }
-  const Camera3D &getCamera() const { return camera; }
+  Camera3D &getCamera() { return cameraholder.camera; }
+  const Camera3D &getCamera() const { return cameraholder.camera; }
   EntityData &getEntityData() { return collider; }
-  CameraRotation getCameraRotation() { return {yaw, pitch, roll}; };
+  CameraRotation getCameraRotation() {
+    return {cameraholder.rot.yaw, cameraholder.rot.pitch,
+            cameraholder.rot.roll};
+  };
+  void AddPoints(int value) { stats.points += value; }
+  int getPoints() { return stats.points; }
+  bool getFocus() const { return isFocused; }
+  void setFocus(bool val) { isFocused = val; }
+  GameStats getStats() const { return stats; }
+  void setStats(GameStats val) { stats = val; }
 
 private:
-  Camera3D camera{};
+  bool isFocused = true;
+  PlayerCamera cameraholder;
   World *_world = nullptr;
   EntityData collider;
   InteractionSystem interactionSystem;
 
+  GameStats stats;
+  PlayerMovement movement;
   // Camera Variables
-  float pitch = 0.0f;
-  float yaw = 0.0f;
-  float roll;
-  float sensitivity = 0.0005f;
 
   // Defualt player move stats which get modifyed by the surface material
-  float moveSpeed = 8.0f;
-  float groundAccel = 15.0f;
-  float airAccel = 3.0f;
-  float groundFriction = 8.0f;
-  float jumpSpeed = 5.0f;
-  float jumpRayDistance = 3.5;
-
-  float maxExternalHorizontalSpeed = 12.0f;
-  float maxExternalUpSpeed = 7.0f;
-  float maxExternalDownSpeed = 30.0f;
-
-  bool isGrounded = false;
 };
 
 } // namespace engine

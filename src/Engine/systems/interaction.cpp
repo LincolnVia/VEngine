@@ -1,5 +1,6 @@
 #include "engine/systems/interaction.hpp"
 #include "engine/entities.hpp"
+#include "engine/physics/physics.hpp"
 #include "engine/utils.hpp"
 #include "engine/world/world.hpp"
 
@@ -12,12 +13,9 @@
 
 namespace engine {
 
-InteractionSystem::InteractionSystem() {}
-
 void InteractionSystem::Init(World &_world, FirstPersonCharacter &_playerData,
                              Camera3D *_camera) {
   world = &_world;
-  player = &_playerData;
   camera = _camera;
 }
 InteractionIntention InteractionSystem::GetIntention() {
@@ -152,8 +150,18 @@ void InteractionSystem::Input() {
     for (const auto &entity : world->getRuntimeEntities()) {
       if (auto *interactable =
               dynamic_cast<info_interactable *>(entity.get())) {
-        if (B3_ID_EQUALS(interactable->boxdef.bodyId, bodyId)) {
+        if (B3_ID_EQUALS(interactable->boxdef.bodyId, bodyId) &&
+            interactable->interactable_type == INTERACTION_TYPE::BASE) {
           interactable->Interact();
+          foundInteractable = true;
+          break;
+        }
+      }
+      if (auto *door = dynamic_cast<info_door *>(entity.get())) {
+        if (B3_ID_EQUALS(door->boxdef.bodyId, bodyId) &&
+            door->interactable_type == INTERACTION_TYPE::DOOR) {
+          door->Interact(player);
+
           foundInteractable = true;
           break;
         }
@@ -250,9 +258,9 @@ EntityData *InteractionSystem::setHeldObject(EntityData *object) {
 EntityData *InteractionSystem::getHeldObject() const { return heldObject; }
 
 b3Vec3 InteractionSystem::GetHoldPosition() const {
-  const b3CosSin pitchTrig = b3ComputeCosSin(player->getCameraRotation().pitch);
+  const b3CosSin pitchTrig = b3ComputeCosSin(player.getCameraRotation().pitch);
 
-  const b3CosSin yawTrig = b3ComputeCosSin(player->getCameraRotation().yaw);
+  const b3CosSin yawTrig = b3ComputeCosSin(player.getCameraRotation().yaw);
 
   const b3Vec3 forward = {
       pitchTrig.cosine * yawTrig.sine,
@@ -261,7 +269,7 @@ b3Vec3 InteractionSystem::GetHoldPosition() const {
   };
 
   const b3Vec3 eye =
-      b3Add(b3ToVec3(b3Body_GetPosition(player->getEntityData().bodyId)),
+      b3Add(b3ToVec3(b3Body_GetPosition(player.getEntityData().bodyId)),
 
             {0.0f, 1.0f, 0.0f});
 

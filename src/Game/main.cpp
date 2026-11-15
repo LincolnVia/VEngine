@@ -52,7 +52,10 @@ int main(int argc, char *argv[]) {
   while (!engine.ShouldClose()) {
     world.Update();
     if (useMouseInput)
-      player.Input();
+      player.setFocus(true);
+    else
+      player.setFocus(false);
+
     player.Update();
     // BEFORE VISUAL CHANGE
 
@@ -81,7 +84,7 @@ int main(int argc, char *argv[]) {
         (Rectangle){0, 0, (float)GetRenderWidth(), (float)GetRenderHeight()},
         (Vector2){0, 0}, 0.0f, WHITE);
     EndShaderMode();
-
+    player.getStats().Draw();
     EndDrawing();
   }
   return 0;

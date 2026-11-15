@@ -27,6 +27,12 @@ struct EventListener {
     }
     return false;
   }
+  bool IsPressed() {
+    if (IsMouseOver() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+      return true;
+    else
+      return false;
+  }
 };
 struct SceneObject {
   SceneObject(Transform transform, RectBounds bounds)
