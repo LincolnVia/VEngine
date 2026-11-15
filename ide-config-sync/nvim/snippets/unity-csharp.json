@@ -1,0 +1,93 @@
+{
+  "MonoBehaviour class": {
+    "prefix": "mbclass",
+    "description": "Unity MonoBehaviour class with common lifecycle methods",
+    "body": [
+      "using UnityEngine;",
+      "",
+      "public class ${1:NewBehaviour} : MonoBehaviour",
+      "{",
+      "    private void Awake()",
+      "    {",
+      "        $0",
+      "    }",
+      "",
+      "    private void Start()",
+      "    {",
+      "    }",
+      "",
+      "    private void Update()",
+      "    {",
+      "    }",
+      "}"
+    ]
+  },
+  "Awake": {
+    "prefix": "awake",
+    "description": "Unity Awake lifecycle method",
+    "body": ["private void Awake()", "{", "    $0", "}"]
+  },
+  "Start": {
+    "prefix": "ustart",
+    "description": "Unity Start lifecycle method",
+    "body": ["private void Start()", "{", "    $0", "}"]
+  },
+  "Update": {
+    "prefix": "uupdate",
+    "description": "Unity Update lifecycle method",
+    "body": ["private void Update()", "{", "    $0", "}"]
+  },
+  "FixedUpdate": {
+    "prefix": "ufixed",
+    "description": "Unity FixedUpdate lifecycle method",
+    "body": ["private void FixedUpdate()", "{", "    $0", "}"]
+  },
+  "OnEnable": {
+    "prefix": "uenable",
+    "body": ["private void OnEnable()", "{", "    $0", "}"]
+  },
+  "OnDisable": {
+    "prefix": "udisable",
+    "body": ["private void OnDisable()", "{", "    $0", "}"]
+  },
+  "OnTriggerEnter": {
+    "prefix": "utrigger",
+    "body": [
+      "private void OnTriggerEnter(Collider other)",
+      "{",
+      "    $0",
+      "}"
+    ]
+  },
+  "OnCollisionEnter": {
+    "prefix": "ucollision",
+    "body": [
+      "private void OnCollisionEnter(Collision collision)",
+      "{",
+      "    $0",
+      "}"
+    ]
+  },
+  "SerializeField": {
+    "prefix": "serializedfield",
+    "body": ["[SerializeField] private ${1:float} ${2:value};$0"]
+  },
+  "GetComponent": {
+    "prefix": "getcomp",
+    "body": ["${1:component} = GetComponent<${2:Component}>();$0"]
+  },
+  "Debug.Log": {
+    "prefix": "dlog",
+    "body": ["Debug.Log(${1:value});$0"]
+  },
+  "Coroutine": {
+    "prefix": "ucoroutine",
+    "body": [
+      "private IEnumerator ${1:Routine}()",
+      "{",
+      "    $0",
+      "    yield return null;",
+      "}"
+    ]
+  }
+}

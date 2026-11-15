@@ -1,0 +1,8 @@
+{
+  "name": "unity-csharp-snippets",
+  "contributes": {
+    "snippets": [
+      { "language": ["csharp", "cs"], "path": "./unity-csharp.json" }
+    ]
+  }
+}
