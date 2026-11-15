@@ -7,9 +7,7 @@
 #include <raymath.h>
 #include <rlgl.h>
 
-namespace game {
-using engine::useHDR;
-
+namespace engine {
 inline Vector3 B3Vec3ToVector3(const b3Vec3 &v) {
   return Vector3{v.x, v.y, v.z};
 }
@@ -494,4 +492,4 @@ inline void DrawSkybox(Model &skybox) {
   rlEnableDepthMask();
 }
 
-} // namespace game
+} // namespace engine

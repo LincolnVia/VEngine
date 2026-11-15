@@ -1,12 +1,12 @@
 #pragma once
 
-#include <engine/physics/physics.hpp>
 #include "quakePalette.hpp"
 #include <array>
 #include <box3d/box3d.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <engine/physics/physics.hpp>
 #include <filesystem>
 #include <fstream>
 #include <limits>
@@ -20,7 +20,7 @@
 
 struct b3MeshData;
 
-namespace game {
+namespace engine {
 using Entity = std::unordered_map<std::string, std::string>;
 
 constexpr int32_t kQuakeBspVersion = 29;
@@ -320,4 +320,4 @@ private:
   int triangleCount = 0;
 };
 
-} // namespace game
+} // namespace engine

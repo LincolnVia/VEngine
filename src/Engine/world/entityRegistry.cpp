@@ -1,13 +1,13 @@
 #include "entityRegistry.hpp"
 
-#include <engine/engine.hpp>
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>
+#include <engine/engine.hpp>
 #include <limits>
 #include <utility>
 
-namespace game {
+namespace engine {
 
 namespace {
 
@@ -42,8 +42,7 @@ void LogInvalid(std::string_view className, std::string_view key,
                 const std::string &value) {
   TraceLog(LOG_WARNING, "Ignoring invalid %.*s on %.*s: '%s'",
            static_cast<int>(key.size()), key.data(),
-           static_cast<int>(className.size()), className.data(),
-           value.c_str());
+           static_cast<int>(className.size()), className.data(), value.c_str());
 }
 
 } // namespace
@@ -53,7 +52,8 @@ const std::string *EntityView::Find(std::string_view key) const {
   return entry == entity.end() ? nullptr : &entry->second;
 }
 
-std::string EntityView::String(std::string_view key, std::string fallback) const {
+std::string EntityView::String(std::string_view key,
+                               std::string fallback) const {
   const std::string *value = Find(key);
   return value == nullptr ? std::move(fallback) : *value;
 }
@@ -177,8 +177,7 @@ std::optional<ModelEntity> ParseModelEntity(Engine &engine,
   result.size = {(bounds.max.x - bounds.min.x) * scale,
                  (bounds.max.y - bounds.min.y) * scale,
                  (bounds.max.z - bounds.min.z) * scale};
-  if (result.size.x <= 0.0f || result.size.y <= 0.0f ||
-      result.size.z <= 0.0f) {
+  if (result.size.x <= 0.0f || result.size.y <= 0.0f || result.size.z <= 0.0f) {
     TraceLog(LOG_WARNING, "Skipping %.*s with empty model bounds: %s",
              static_cast<int>(className.size()), className.data(),
              result.path.string().c_str());
@@ -207,4 +206,4 @@ void EntityRegistry::SpawnAll(const std::vector<Entity> &entities) const {
   }
 }
 
-} // namespace game
+} // namespace engine

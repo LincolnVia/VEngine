@@ -8,9 +8,9 @@
 #include <engine/world/quakeBsp.hpp>
 
 namespace game {
-void ZombieManager::ReadLevelData(QuakeBspLevel &quakeLevel) {
-  for (const Entity &entity : quakeLevel.getEntities()) {
-    const EntityView properties(entity);
+void ZombieManager::ReadLevelData(engine::QuakeBspLevel &quakeLevel) {
+  for (const engine::Entity &entity : quakeLevel.getEntities()) {
+    const engine::EntityView properties(entity);
     if (properties.ClassName() != "info_zombie_spawn") {
       continue;
     }
@@ -27,7 +27,8 @@ void ZombieManager::ReadLevelData(QuakeBspLevel &quakeLevel) {
 
 void ZombieManager::UpdateSpawners() {
   for (info_zombie_spawn &_info_zombie_spawn : zombieSpawners) {
-    DrawCube(B3Vec3ToVector3(_info_zombie_spawn.position), 5, 5, 5, RED);
+    DrawCube(engine::B3Vec3ToVector3(_info_zombie_spawn.position), 5, 5, 5,
+             RED);
   }
 }
 

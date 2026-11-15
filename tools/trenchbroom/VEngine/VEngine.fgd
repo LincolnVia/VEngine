@@ -32,11 +32,39 @@
     triggered(integer) : "Triggered" : 0
     enabled(integer) : "Enabled" : 1
 ]
-
-@PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/heavy_zombie.glb", "scale": "60"}) angle(-1) = info_zombie_spawn : "Enemy spawner"
+@PointClass size(-16 -16 -16, 16 16 16) color(255 255 100) = info_interactable : "Interactable"
+[
+    model(string) : "Model" : "companion_cube.glb"
+    angle(integer) : "Yaw" : 0
+    scale(float) : "Uniform scale" : "1"
+    target(integer) : "target" : -1
+    text(string) : "Press [E] to Interact" : "Press [E] to interact"
+    triggered(integer) : "Triggered" : 0
+    enabled(integer) : "Enabled" : 1
+]
+@PointClass size(-16 -16 -16, 16 16 16) color(255 255 100) = info_door : "Door"
+[
+    model(string) : "Model" : "companion_cube.glb"
+    angle(integer) : "Yaw" : 0
+    scale(float) : "Uniform scale" : "1"
+    cost(integer) : "Cost" : 500 
+    text(string) : "Press [E] to Interact" : "Press [E] to interact"
+    
+    enabled(integer) : "Enabled" : 1
+]
+@PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/heavy_zombie.glb", "scale": "60"}) = info_zombie_spawn : "Enemy spawner"
 [ 
-    angle(integer) : "Direction" : -1
+    model(string) : "ModelPath" : ""
+    
     spawnrate(integer) : "Spawn Rate" : 0
+    limit(integer) : "Max Spawns" : 1 
+    enabled(integer) : "Enabled" : 1
+]
+
+@PointClass size(-8 -8 -8, 8 8 8) color(255 0 0) model({"path": "resources/models/hellhound/hellhound.glb", "scale": "2.3"}) = info_hound_spawn : "Hound spawner"
+[ 
+    model(string) : "ModelPath" : "resources/models/hellhound/hellhound.glb"
+        spawnrate(integer) : "Spawn Rate" : 0
     limit(integer) : "Max Spawns" : 1 
     enabled(integer) : "Enabled" : 1
 ]

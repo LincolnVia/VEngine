@@ -1,0 +1,306 @@
+#include <cstdio>
+#include <engine/engine.hpp>
+#include <engine/graphics/graphics.hpp>
+#include <engine/world/cubeBrush.hpp>
+#include <engine/world/quakeUtil.hpp>
+#include <engine/world/world.hpp>
+
+#include "engine/entities.hpp"
+#include "engine/physics/physics.hpp"
+#include "engine/world/entityRegistry.hpp"
+#include "engine/world/quakeBsp.hpp"
+#include "game/world/entities.hpp"
+
+#include "raymath.h"
+#include <algorithm>
+#include <box3d/box3d.h>
+#include <box3d/math_functions.h>
+#include <box3d/types.h>
+#include <cctype>
+
+#include <memory>
+#include <raylib.h>
+#define RLIGHTS_IMPLEMENTATION
+#include <rlights.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace engine {
+
+enum Materials {
+
+};
+
+World::World(Engine &engine) : engine(engine) {
+  b3WorldDef worldDef = b3DefaultWorldDef();
+  worldDef.gravity = b3Vec3{0.0f, -10.0f, 0.0f};
+  worldDef.enableContinuous = true;
+  worldDef.contactHertz = 60.0f;
+  worldDef.contactDampingRatio = 8.0f;
+  worldDef.contactSpeed = 10.0f;
+  worldDef.maximumLinearSpeed = 30.0f;
+  worldId = b3CreateWorld(&worldDef);
+  RegisterEntitySpawners();
+}
+
+void World::Init() {
+
+  skyBox = createSkybox(engine.getShaderManager().getShader("cubemap"));
+  CreateLight(LIGHT_DIRECTIONAL, {0, 0, 0}, {-1, 0, -1}, WHITE,
+              engine.getShaderManager().getShader("lighting"));
+  cubeBrush brush = {
+      b3WorldTransform{b3ToPos({0.0f, -2.0f, 50.0f}), b3Quat_identity},
+      b3Vec3{100.0f, 1.0f, 100.0f}, WHITE};
+
+  (void)brush;
+}
+
+void World::Shutdown() {
+  if (isShutdown) {
+    return;
+  }
+  ClearSpawnedEntities();
+  quakeLevel.Unload();
+  b3DestroyWorld(worldId);
+  worldId = b3_nullWorldId;
+  isShutdown = true;
+}
+
+World::~World() { Shutdown(); }
+
+bool World::LoadBspLevel(const std::filesystem::path &path) {
+  std::string error;
+  if (!quakeLevel.Load(path, worldId, error)) {
+    bspStatus = "BSP load failed: " + error;
+    TraceLog(LOG_ERROR, "%s", bspStatus.c_str());
+    return false;
+  }
+
+  bspStatus =
+      TextFormat("%s (%d collision triangles)", quakeLevel.GetPath().c_str(),
+                 quakeLevel.GetTriangleCount());
+  for (EntityData &object : sceneObjects) {
+    b3Body_Disable(object.bodyId);
+  }
+  TraceLog(LOG_INFO, "Loaded BSP level: %s", bspStatus.c_str());
+  SpawnEntities();
+  return true;
+}
+
+void World::Update() {
+  if (IsFileDropped()) {
+    FilePathList droppedFiles = LoadDroppedFiles();
+    if (droppedFiles.count > 0) {
+      const std::filesystem::path path(droppedFiles.paths[0]);
+      std::string extension = path.extension().string();
+      std::transform(extension.begin(), extension.end(), extension.begin(),
+                     [](unsigned char character) {
+                       return static_cast<char>(std::tolower(character));
+                     });
+      if (extension == ".bsp") {
+        LoadBspLevel(path);
+      } else if (extension != ".bsp") {
+        TraceLog(LOG_WARNING, "Dropped file is not a .bsp: %s",
+                 path.string().c_str());
+      }
+    }
+
+    UnloadDroppedFiles(droppedFiles);
+  }
+  b3World_Step(worldId, timeStep, subStepCount);
+}
+
+void World::DrawGameObjects() {
+
+  for (const auto &entity : runtimeEntities) {
+    const EntityData *object = nullptr;
+    float scale = 1.0f;
+    if (const auto *prop = dynamic_cast<const prop_dynamic *>(entity.get())) {
+      object = &prop->boxdef;
+      scale = prop->modelScale;
+    } else if (const auto *interactable =
+                   dynamic_cast<const info_interactable *>(entity.get())) {
+      object = &interactable->boxdef;
+      scale = interactable->modelScale;
+    } else if (const auto *door =
+                   dynamic_cast<const info_door *>(entity.get())) {
+      object = &door->boxdef;
+      scale = door->modelScale;
+    } else if (const auto *buy =
+                   dynamic_cast<const game::wallbuy *>(entity.get())) {
+      object = &buy->boxdef;
+      scale = buy->modelScale;
+    }
+    if (object != nullptr && object->enabled) {
+      const b3Vec3 modelScale{scale, scale, scale};
+      b3_DrawModel(engine.getAssetManager().getModel(object->modelPath),
+                   B3WorldTransformToMatrix(b3Body_GetTransform(object->bodyId),
+                                            modelScale));
+    }
+  }
+}
+void World::Draw() {
+  DrawSkybox(skyBox);
+  quakeLevel.Draw(engine.getShaderManager().getShader("cel"));
+  DrawGameObjects();
+}
+
+void World::SpawnEntities() {
+  ClearSpawnedEntities();
+  entitySpawners.SpawnAll(quakeLevel.getEntities());
+}
+
+void World::RegisterEntitySpawners() {
+  entitySpawners.Register(
+      "info_trigger", [this](const Entity &entity) { SpawnTrigger(entity); });
+
+  entitySpawners.Register("prop_dynamic", [this](const Entity &entity) {
+    SpawnDynamicProp(entity);
+  });
+  entitySpawners.Register("info_interactable", [this](const Entity &entity) {
+    SpawnInteractable(entity);
+  });
+  entitySpawners.Register("info_door",
+                          [this](const Entity &entity) { SpawnDoor(entity); });
+
+  for (const char *className :
+       {"wallbuy", "weapon_1911", "weapon_ak47", "weapon_remmington"}) {
+    entitySpawners.Register(
+        className, [this](const Entity &entity) { SpawnWallbuy(entity); });
+  }
+}
+
+void World::ClearSpawnedEntities() { runtimeEntities.clear(); }
+
+namespace {
+b3Vec3 ToPhysicsPosition(const Vector3 &position) {
+  return {position.x, position.y, position.z};
+}
+
+void ApplyYaw(const EntityData &object, const EntityTransform &transform) {
+  if (transform.yaw == 0.0f) {
+    return;
+  }
+  const b3Quat rotation =
+      b3MakeQuatFromAxisAngle({0.0f, 1.0f, 0.0f}, transform.yaw * PI / 180.0f);
+  b3Body_SetTransform(object.bodyId,
+                      b3ToPos(ToPhysicsPosition(transform.position)), rotation);
+}
+
+EntityData CreateModelObject(b3WorldId worldId, const ModelEntity &model) {
+  const b3Vec3 position = ToPhysicsPosition(model.transform.position);
+  EntityData object = createDynamicObject(
+      position, model.size, 0.63f, 0.63f, worldId,
+      {CollisionCategory::Dynamic,
+       CollisionCategory::World | CollisionCategory::Player});
+  object.type = ModelType::MODEL;
+  object.modelPath = model.key;
+  ApplyYaw(object, model.transform);
+  return object;
+}
+
+} // namespace
+
+void World::SpawnDynamicProp(const Entity &entity) {
+  const auto model =
+      ParseModelEntity(engine, EntityView(entity), "prop_dynamic");
+  if (!model) {
+    return;
+  }
+  runtimeEntities.push_back(std::make_unique<prop_dynamic>(
+      CreateModelObject(worldId, *model), model->transform.scale));
+}
+void World::SpawnDoor(const Entity &entity) {
+  const auto model = ParseModelEntity(engine, EntityView(entity), "info_door");
+  const EntityView view(entity);
+  Entity modelEntity = entity;
+  if (!model)
+    return;
+  auto door = std::make_unique<info_door>(
+      Vector3{model->transform.position.x, model->transform.position.y,
+              model->transform.position.z},
+      Vector3{model->size.x, model->size.y, model->size.z}, worldId);
+  door->boxdef.modelPath = model->key;
+  door->modelScale = model->transform.scale;
+  door->boxdef.type = ModelType::MODEL;
+  ApplyYaw(door->boxdef, model->transform);
+  door->boxdef.name = "info_door";
+  door->cost = view.Int("cost", 0);
+  door->openAngle = view.Float("openAngle", 90);
+  door->boxdef.enabled = view.Int("enabled", 1);
+  runtimeEntities.push_back(std::move(door));
+}
+void World::SpawnWallbuy(const Entity &entity) {
+  const EntityView view(entity);
+  const auto model = ParseModelEntity(engine, view, "wallbuy");
+  if (!model) {
+    return;
+  }
+
+  auto buy = std::make_unique<game::wallbuy>(CreateModelObject(worldId, *model),
+                                             model->transform.scale);
+  buy->cost = view.Int("cost", 0);
+  buy->purchased = view.Int("purchased", 0);
+  runtimeEntities.push_back(std::move(buy));
+}
+
+void World::SpawnInteractable(const Entity &entity) {
+  const EntityView view(entity);
+  Entity modelEntity = entity;
+  auto model =
+      ParseModelEntity(engine, EntityView(entity), "info_interactable");
+  if (!model) {
+    return;
+  }
+  // Use the authored model's bounds as the
+  // interaction volume and draw the
+  // same model for the player.
+  auto interactable = std::make_unique<info_interactable>(
+      Vector3{model->transform.position.x, model->transform.position.y,
+              model->transform.position.z},
+      Vector3{model->size.x, model->size.y, model->size.z}, worldId);
+  interactable->boxdef.modelPath = model->key;
+  interactable->modelScale = model->transform.scale;
+  interactable->boxdef.type = ModelType::MODEL;
+  ApplyYaw(interactable->boxdef, model->transform);
+  interactable->boxdef.name = "info_interactable";
+  interactable->triggered = view.Int("triggered", 0);
+  interactable->target = view.Int("target", -1);
+  interactable->boxdef.enabled = view.Int("enabled", 1);
+  runtimeEntities.push_back(std::move(interactable));
+}
+
+void World::SpawnTrigger(const Entity &entity) {
+  const EntityView view(entity);
+  const std::string *model = view.Find("model");
+  if (model == nullptr || model->size() < 2 || model->front() != '*') {
+    TraceLog(LOG_WARNING, "Skipping info_trigger with invalid model key");
+    return;
+  }
+
+  BspModel bspModel{};
+  try {
+    size_t parsedLength = 0;
+    const int modelIndex = std::stoi(model->substr(1), &parsedLength);
+    if (parsedLength != model->size() - 1 || modelIndex <= 0) {
+      TraceLog(LOG_WARNING, "Skipping info_trigger with invalid model key: %s",
+               model->c_str());
+      return;
+    }
+    bspModel = quakeLevel.GetModel(static_cast<size_t>(modelIndex));
+  } catch (const std::exception &) {
+    TraceLog(LOG_WARNING, "Skipping info_trigger with invalid model key: %s",
+             model->c_str());
+    return;
+  }
+
+  auto trigger = std::make_unique<info_trigger>(
+      centerFromQuake(bspModel), halfFromQuake(bspModel), worldId);
+  trigger->target = view.Int("target", -1);
+  trigger->triggered = view.Int("triggered", 0);
+  trigger->enabled = view.Int("enabled", 1);
+  runtimeEntities.push_back(std::move(trigger));
+}
+
+} // namespace engine
